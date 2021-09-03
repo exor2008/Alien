@@ -10,6 +10,7 @@ public class Alien : MonoBehaviour
     public NavMeshAgent navMeshAgent;
     public float runSpeed;
     public float jumpSpeed;
+    public float escapeSpeed;
     public float jumpDistance;
     public float killDistance;
     public bool isSpawned;
@@ -17,8 +18,6 @@ public class Alien : MonoBehaviour
     SpawnerControll spawnerController;
     StateManager stateManager;
     GameObject target;
-    RaycastHit hit;
-
 
     void Start()
     {
@@ -117,7 +116,13 @@ public class Alien : MonoBehaviour
     public void SetRunSpeed()
     {
         navMeshAgent.speed = runSpeed;
-        navMeshAgent.acceleration = 20;
+        navMeshAgent.acceleration = 32;
+    }
+
+    public void SetEscapeSpeed()
+    {
+        navMeshAgent.speed = escapeSpeed;
+        navMeshAgent.acceleration = 16;
     }
 
     public void SetPawnController(SpawnerControll _spawnerController)

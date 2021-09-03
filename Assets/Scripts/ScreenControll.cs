@@ -2,53 +2,68 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum Screens
+{
+    Main,
+    Operative1,
+    Operative2,
+    Operative3,
+    Operative4,
+}
 public class ScreenControll : MonoBehaviour
 {
-    public Material MainScreenMaterial;
-    public RenderTexture MainRT;
-
-    public RenderTexture Operative1RT;
-    public RenderTexture Operative2RT;
-    public RenderTexture Operative3RT;
-    public RenderTexture Operative4RT;
+    public GameObject[] screens;
+    public Material[] screenMaterials;
 
     public Camera topCamera;
     public Camera viewCamera;
     
     public Collider screenCollider;
 
+    MeshRenderer mainScreenMR;
     bool isControllable;
 
     void Start()
     {
         isControllable = true;
+        InitScreens();
+        mainScreenMR = screens[(int)Screens.Main].GetComponent<MeshRenderer>();
+    }
+    void InitScreens()
+    {
+        MeshRenderer meshRenderer;
+        for (int i = 0; i < screenMaterials.Length; i++)
+        {
+            meshRenderer = screens[i].GetComponent<MeshRenderer>();
+            meshRenderer.material = screenMaterials[i];
+        }
     }
 
     void Update()
     {
         if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha1))
         {
-            MainScreenMaterial.mainTexture = Operative1RT;
+            mainScreenMR.material = screenMaterials[(int)Screens.Operative1];
             isControllable = false;
         }
         else if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha2))
         {
-            MainScreenMaterial.mainTexture = Operative2RT;
+            mainScreenMR.material = screenMaterials[(int)Screens.Operative2];
             isControllable = false;
         }
         else if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha3))
         {
-            MainScreenMaterial.mainTexture = Operative3RT;
+            mainScreenMR.material = screenMaterials[(int)Screens.Operative3];
             isControllable = false;
         }
         else if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha4))
         {
-            MainScreenMaterial.mainTexture = Operative4RT;
+            mainScreenMR.material = screenMaterials[(int)Screens.Operative4];
             isControllable = false;
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
-            MainScreenMaterial.mainTexture = MainRT;
+            mainScreenMR.material = screenMaterials[(int)Screens.Main];
             isControllable = true;
         }
     }
@@ -81,5 +96,10 @@ public class ScreenControll : MonoBehaviour
             return null;
         }
         return null;
+    }
+
+    public void ShutDown(int index)
+    {
+        //TODO: raise up noise
     }
 }

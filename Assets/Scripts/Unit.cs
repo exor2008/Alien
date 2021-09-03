@@ -9,6 +9,7 @@ public class Unit : MonoBehaviour
     public NavMeshAgent navAgent;
     public GameObject screens;
     public bool isCurrent;
+    public int serialNumber;
 
     protected Vector3 destination;
     protected ScreenControll screenControll;
@@ -42,5 +43,6 @@ public class Unit : MonoBehaviour
     {
         navAgent.Warp(new Vector3(130, 2, -20));
         navAgent.isStopped = true;
+        screenControll.ShutDown(serialNumber);
     }
 }

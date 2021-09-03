@@ -96,7 +96,7 @@ public class EscapeState : State
     public EscapeState(Alien alien) : base(alien) 
     {
         Debug.Log("Alien escaping");
-        alien.SetRunSpeed();
+        alien.SetEscapeSpeed();
         isSpawner = alien.FindClosestSpawner(out spawner);
     }
     public override State Update()
