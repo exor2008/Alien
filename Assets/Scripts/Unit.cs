@@ -22,21 +22,18 @@ public class Unit : MonoBehaviour
 
     void Update()
     {
-        if (isCurrent)
-        {
-            Vector3? dest = screenControll.GetDestinationByClick();
-            if (dest != null)
-            { 
-                destination = (Vector3)dest; 
-            }
-            
-        }
-        navAgent.SetDestination(destination);
+
     }
 
     public void SetCurrent(bool current)
     {
         isCurrent = current;
+    }
+
+    public void SetDestination(Vector3 _destination)
+    {
+        destination = _destination;
+        navAgent.SetDestination(destination);
     }
 
     public void Die()

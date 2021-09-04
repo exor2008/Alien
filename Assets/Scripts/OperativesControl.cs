@@ -46,4 +46,9 @@ public class OperativesControl : MonoBehaviour
         currentOperativeIdx = activeIdx;
         units[currentOperativeIdx].SetCurrent(true);
     }
+
+    public GameObject GetCurrentOperative()
+    {
+        return operatives[currentOperativeIdx];
+    }
 }
