@@ -24,19 +24,25 @@ public class ScreenControll : MonoBehaviour
 
     OperativesControl operativesControl;
     MeshRenderer mainScreenMR;
-    bool isControllable;
+
     Vector3 minBounds;
     Vector3 maxBounds;
     Door door;
+    ActiveScreen activeScreen;
+
+    const int FIRST_OPERATIVE = 0;
+    const int SECOND_OPERATIVE = 1;
+    const int THIRD_OPERATIVE = 2;
+    const int FOURTH_OPERATIVE = 3;
 
     void Start()
     {
-        isControllable = true;
         InitScreens();
         mainScreenMR = screens[(int)Screens.Main].GetComponent<MeshRenderer>();
         minBounds = screenCollider.bounds.min;
         maxBounds = screenCollider.bounds.max;
         operativesControl = operativesControllObj.GetComponent<OperativesControl>();
+        SetMinimapActiveScreen();
     }
     void InitScreens()
     {
@@ -53,71 +59,71 @@ public class ScreenControll : MonoBehaviour
         if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha1))
         {
             mainScreenMR.material = screenMaterials[(int)Screens.Operative1];
-            isControllable = false;
+            SetOperativeActiveScreen(FIRST_OPERATIVE);
         }
         else if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha2))
         {
             mainScreenMR.material = screenMaterials[(int)Screens.Operative2];
-            isControllable = false;
+            SetOperativeActiveScreen(SECOND_OPERATIVE);
         }
         else if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha3))
         {
             mainScreenMR.material = screenMaterials[(int)Screens.Operative3];
-            isControllable = false;
+            SetOperativeActiveScreen(THIRD_OPERATIVE);
         }
         else if (!Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha4))
         {
             mainScreenMR.material = screenMaterials[(int)Screens.Operative4];
-            isControllable = false;
+            SetOperativeActiveScreen(FOURTH_OPERATIVE);
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
             mainScreenMR.material = screenMaterials[(int)Screens.Main];
-            isControllable = true;
+            SetMinimapActiveScreen();
         }
-        OnClick();
+        if (Input.GetMouseButtonUp(0))
+        {
+            OnClick();
+        }
+    }
+
+    public void SetActiveScreen(ActiveScreen _activeScreen)
+    {
+        activeScreen = _activeScreen;
+    }
+
+    public void SetMinimapActiveScreen()
+    {
+        ActiveScreen screen = new MinimapActiveScreen(topCamera, operativesControl);
+        SetActiveScreen(screen);
+    }
+
+    public void SetOperativeActiveScreen(int operativeIdx)
+    {
+        GameObject operativeObj = operativesControl.GetOperative(operativeIdx);
+        Transform cameraTransform = operativeObj.transform.Find("Camera");
+        Camera camera = cameraTransform.GetComponent<Camera>();
+        ActiveScreen screen = new OperativeActiveScreen(camera);
+        SetActiveScreen(screen);
     }
 
     public void OnClick()
     {
         RaycastHit hitScreen;
-        if (Input.GetMouseButtonUp(0))
+        Ray clickRay = viewCamera.ScreenPointToRay(Input.mousePosition);
+
+        // check if we hit the main screen area
+        if (Physics.Raycast(clickRay, out hitScreen) && (hitScreen.collider == screenCollider))
         {
-            Ray clickRay = viewCamera.ScreenPointToRay(Input.mousePosition);
+            // resolve the point we clicked on the screen 
+            Vector3 screenPoint = CameraToScreen(hitScreen);
 
-            // check if we hit the main screen area
-            if (Physics.Raycast(clickRay, out hitScreen) && (hitScreen.collider == screenCollider) && isControllable)
-            {
-                ClickReaction reaction = GetReaction(hitScreen);
-                reaction.React();
-            }
+            // convert point on the screen to world coordinates
+            Ray viewRay = activeScreen.ScreenPointToRay(screenPoint);
+
+            ClickReaction reaction = activeScreen.GetReaction(viewRay);
+            reaction.React();
         }
-    }
-
-    ClickReaction GetReaction(RaycastHit hitScreen)
-    {
-        
-        RaycastHit hitObject;
-
-        // resolve the point we clicked on the screen 
-        Vector3 screenPoint = CameraToScreen(hitScreen);
-
-        // convert point on the screen to world coordinates
-        Ray viewRay = topCamera.ScreenPointToRay(screenPoint);
-
-        // cast ray to see what object we hit
-        if (Physics.Raycast(viewRay, out hitObject))
-        {
-            if ((door = hitObject.collider.GetComponent<Door>()) != null)
-            {
-                return new DoorReaction(hitObject);
-            }
-            else
-            {
-                return new FloorReaction(hitObject, operativesControl);
-            }
-        }
-        return new NoReaction(hitObject);
     }
 
     Vector3 CameraToScreen(RaycastHit hit)
@@ -134,6 +140,76 @@ public class ScreenControll : MonoBehaviour
     public void ShutDown(int index)
     {
         //TODO: raise up noise
+    }
+}
+
+public abstract class ActiveScreen
+{
+    protected Camera camera;
+    public ActiveScreen(Camera _camera)
+    {
+        camera = _camera;
+    }
+    protected RaycastHit hitObject;
+    public abstract ClickReaction GetReaction(Ray viewRay);
+
+    public Ray ScreenPointToRay(Vector3 screenPoint)
+    {
+        // convert point on the screen to world coordinates
+        return camera.ScreenPointToRay(screenPoint);
+    }
+}
+
+public class MinimapActiveScreen: ActiveScreen
+{
+    OperativesControl operativesControl;
+    public MinimapActiveScreen(Camera _camera, OperativesControl _operativesControl)
+        : base(_camera)
+    {
+        operativesControl = _operativesControl;
+    }
+    public override ClickReaction GetReaction(Ray viewRay)
+    {
+        Door door;
+
+        // cast ray to see what object we hit
+        if (Physics.Raycast(viewRay, out hitObject))
+        {
+            if ((door = hitObject.collider.GetComponent<Door>()) != null)
+            {
+                return new DoorReaction(hitObject);
+            }
+            else
+            {
+                return new FloorReaction(hitObject, operativesControl);
+            }
+        }
+        return new NoReaction(hitObject);
+    }
+}
+
+public class OperativeActiveScreen : ActiveScreen
+{
+    public OperativeActiveScreen(Camera _camera): base(_camera) { }
+    public override ClickReaction GetReaction(Ray viewRay)
+    {
+        Alien alien;
+        Door door;
+
+        // cast ray to see what object we hit
+        if (Physics.Raycast(viewRay, out hitObject))
+        {
+            if ((alien = hitObject.collider.GetComponent<Alien>()) != null)
+            {
+                // TODO: implement shooting
+                return new AlienFleeReaction(hitObject);
+            }
+            else if ((door = hitObject.collider.GetComponent<Door>()) != null)
+            {
+                return new DoorReaction(hitObject);
+            }
+        }
+        return new NoReaction(hitObject);
     }
 }
 
@@ -165,7 +241,6 @@ public class DoorReaction: ClickReaction
 
 public class FloorReaction : ClickReaction
 {
-    Camera topCamera;
     OperativesControl operativesControl;
 
     public FloorReaction(
@@ -181,5 +256,17 @@ public class FloorReaction : ClickReaction
         GameObject operative = operativesControl.GetCurrentOperative();
         Unit unit = operative.GetComponent<Unit>();
         unit.SetDestination(destination);
+    }
+}
+
+public class AlienFleeReaction : ClickReaction
+{
+    public AlienFleeReaction(
+        RaycastHit hitInfo) : base(hitInfo) { }
+
+    public override void React()
+    {
+        Alien alien = hitInfo.collider.gameObject.GetComponent<Alien>();
+        alien.SwitchState(new EscapeState(alien));
     }
 }

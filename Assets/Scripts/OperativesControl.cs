@@ -51,4 +51,9 @@ public class OperativesControl : MonoBehaviour
     {
         return operatives[currentOperativeIdx];
     }
+
+    public GameObject GetOperative(int index)
+    {
+        return operatives[index];
+    }
 }
