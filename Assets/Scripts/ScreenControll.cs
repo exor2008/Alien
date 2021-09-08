@@ -103,7 +103,8 @@ public class ScreenControll : MonoBehaviour
         GameObject operativeObj = operativesControl.GetOperative(operativeIdx);
         Transform cameraTransform = operativeObj.transform.Find("Camera");
         Camera camera = cameraTransform.GetComponent<Camera>();
-        ActiveScreen screen = new OperativeActiveScreen(camera);
+        Unit operative = operativeObj.GetComponent<Unit>();
+        ActiveScreen screen = new OperativeActiveScreen(camera, operative);
         SetActiveScreen(screen);
     }
 
@@ -177,7 +178,19 @@ public class MinimapActiveScreen: ActiveScreen
         {
             if ((door = hitObject.collider.GetComponent<Door>()) != null)
             {
-                return new DoorReaction(hitObject);
+                if (door.isPowered)
+                {
+                    if (door.isAutotomate)
+                    {
+                        return new AutomaticDoorReaction(hitObject);
+                    }
+                    else
+                    {
+                        GameObject operativeObj = operativesControl.GetCurrentOperative();
+                        Unit operative = operativeObj.GetComponent<Unit>();
+                        return new ManualDoorReaction(hitObject, operative);
+                    }
+                }
             }
             else
             {
@@ -190,7 +203,11 @@ public class MinimapActiveScreen: ActiveScreen
 
 public class OperativeActiveScreen : ActiveScreen
 {
-    public OperativeActiveScreen(Camera _camera): base(_camera) { }
+    Unit operative;
+    public OperativeActiveScreen(Camera _camera, Unit _operative) : base(_camera) 
+    {
+        operative = _operative;
+    }
     public override ClickReaction GetReaction(Ray viewRay)
     {
         Alien alien;
@@ -206,7 +223,10 @@ public class OperativeActiveScreen : ActiveScreen
             }
             else if ((door = hitObject.collider.GetComponent<Door>()) != null)
             {
-                return new DoorReaction(hitObject);
+                if (door.isPowered)
+                {
+                    return new ManualDoorReaction(hitObject, operative);
+                }
             }
         }
         return new NoReaction(hitObject);
@@ -229,13 +249,26 @@ public class NoReaction : ClickReaction
     public override void React() { }
 }
 
-public class DoorReaction: ClickReaction
+public class AutomaticDoorReaction: ClickReaction
 {
-    public DoorReaction(RaycastHit hitInfo) : base(hitInfo) { }
+    public AutomaticDoorReaction(RaycastHit hitInfo) : base(hitInfo) { }
     public override void React()
     {
         Door door = hitInfo.collider.GetComponent<Door>();
         door.Switch();
+    }
+}
+
+public class ManualDoorReaction : ClickReaction
+{
+    Unit operative;
+    public ManualDoorReaction(RaycastHit hitInfo, Unit _operative) : base(hitInfo) 
+    {
+        operative = _operative;
+    }
+    public override void React()
+    {
+        operative.InteractWith(hitInfo.collider.gameObject, hitInfo.point);
     }
 }
 
