@@ -10,6 +10,7 @@ public class Unit : MonoBehaviour
     public GameObject screens;
     public bool isCurrent;
     public int serialNumber;
+    public FieldOfView fieldOfView;
 
     protected Vector3 destination;
     protected ScreenControll screenControll;
