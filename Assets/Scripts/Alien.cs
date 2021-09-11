@@ -15,6 +15,7 @@ public class Alien : MonoBehaviour
     public float killDistance;
     public bool isSpawned;
     public float angryLevel;
+    public float chillCooldown;
 
     [HideInInspector]
     public ReactionResolver reactionResolver;
@@ -33,6 +34,7 @@ public class Alien : MonoBehaviour
         {
             operatives[i] = operativesObj[i].GetComponent<Unit>();
         }
+        StartCoroutine(ChillOverTime(chillCooldown));
     }
 
     void Update()
@@ -57,7 +59,6 @@ public class Alien : MonoBehaviour
             navMeshAgent.SetDestination(target.transform.position);
         }
     }
-
     public bool FindClosestTarget(out GameObject closest)
     {
         BaseDistanceResolver dist = new DistanceResolver(transform.position, navMeshAgent);
@@ -145,7 +146,7 @@ public class Alien : MonoBehaviour
     {
         if (Physics.Raycast(transform.position, transform.forward, out hit))
         {
-            return hit.collider == target.GetComponent<Collider>();
+            return hit.collider == target?.GetComponent<Collider>();
         }
         return false;
     }
@@ -211,5 +212,11 @@ public class Alien : MonoBehaviour
         angryLevel -= value;
         angryLevel = Mathf.Clamp(angryLevel, 0, 1);
         Debug.Log(string.Format("Alien chill {0}", angryLevel));
+    }
+
+    IEnumerator ChillOverTime(float cooldown)
+    {
+        Chill();
+        yield return new WaitForSeconds(cooldown);
     }
 }
