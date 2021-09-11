@@ -27,7 +27,7 @@ public class ScreenControll : MonoBehaviour
 
     Vector3 minBounds;
     Vector3 maxBounds;
-    Door door;
+
     ActiveScreen activeScreen;
 
     const int FIRST_OPERATIVE = 0;
@@ -300,6 +300,7 @@ public class AlienFleeReaction : ClickReaction
     public override void React()
     {
         Alien alien = hitInfo.collider.gameObject.GetComponent<Alien>();
+        alien.Angry(.3f);
         alien.SwitchState(new EscapeState(alien));
     }
 }

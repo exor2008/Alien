@@ -15,7 +15,7 @@ public class SpawnerControll : MonoBehaviour
     void Start()
     {
         alien = alienObj.GetComponent<Alien>();
-        alien.SetPawnController(this);
+        alien.SetSpawnController(this);
     }
 
     void Update()

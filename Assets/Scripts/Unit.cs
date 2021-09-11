@@ -60,6 +60,7 @@ public class Unit : MonoBehaviour
         navAgent.Warp(new Vector3(130, 2, -20));
         navAgent.isStopped = true;
         screenControll.ShutDown(serialNumber);
+        fieldOfView.Die();
     }
 
     public void InteractWith(GameObject obj, Vector3 position)

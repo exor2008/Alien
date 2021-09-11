@@ -10,6 +10,11 @@ public class DoorControll : MonoBehaviour
         doors = GetComponentsInChildren<Door>();
         foreach (Door door in doors)
         {
+            if (door.gameObject.name == "DoorPrefab (1)" || door.gameObject.name == "DoorPrefab (2)")
+            {
+                door.SetAutomate();
+                continue;
+            }
             OpenRandomDoor(door, .5f);
             RandomDoorAutomate(door, .5f);
             UnpowerRandomDoor(door, .2f);

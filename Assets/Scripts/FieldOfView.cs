@@ -11,10 +11,12 @@ public class FieldOfView : MonoBehaviour
     public LayerMask obstacleMask; 
 
     protected List<Transform> visibleTargets = new List<Transform>();
+    IEnumerator findTargetsCoroutine;
 
     public void Start()
     {
-        StartCoroutine(FindTargetsWithDelay(.3f));
+        findTargetsCoroutine = FindTargetsWithDelay(.3f);
+        StartCoroutine(findTargetsCoroutine);
     }
 
     public IEnumerator FindTargetsWithDelay(float delay)
@@ -50,5 +52,9 @@ public class FieldOfView : MonoBehaviour
     public List<Transform> GetVisibleTargets()
     {
         return visibleTargets;
+    }
+    public void Die()
+    {
+        StopCoroutine(findTargetsCoroutine);
     }
 }

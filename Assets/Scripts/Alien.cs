@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public class Alien : MonoBehaviour
 {
-    public GameObject[] operatives;
+    public GameObject[] operativesObj;
     public GameObject[] spawners;
     public NavMeshAgent navMeshAgent;
     public float runSpeed;
@@ -14,14 +14,25 @@ public class Alien : MonoBehaviour
     public float jumpDistance;
     public float killDistance;
     public bool isSpawned;
+    public float angryLevel;
 
+    [HideInInspector]
+    public ReactionResolver reactionResolver;
+    Unit[] operatives = new Unit[4];
     SpawnerControll spawnerController;
     StateManager stateManager;
     GameObject target;
+    
+
 
     void Start()
     {
         stateManager = new StateManager(new IdleState(this));
+        reactionResolver = new ReactionResolver(this);
+        for (int i = 0; i < operativesObj.Length; i++)
+        {
+            operatives[i] = operativesObj[i].GetComponent<Unit>();
+        }
     }
 
     void Update()
@@ -29,32 +40,74 @@ public class Alien : MonoBehaviour
         stateManager.Updtae();
     }
 
-    public void MoveToClosestObject(GameObject[] objects)
-    {
-        if (FindClosestObject(out target, objects))
-        {
-            navMeshAgent.SetDestination(target.transform.position);
-        }
-    }
-
     public void MoveToClosestTarget()
     {
-        MoveToClosestObject(operatives);
+        MoveToClosestObject(operativesObj);
     }
 
     public void MoveToClosestSpawner()
     {
         MoveToClosestObject(spawners);
     }
+    public void MoveToClosestObject(GameObject[] objects)
+    {
+        BaseDistanceResolver dist = new DistanceResolver(transform.position, navMeshAgent);
+        if (FindClosestObject(out target, objects, dist))
+        {
+            navMeshAgent.SetDestination(target.transform.position);
+        }
+    }
 
-    public bool FindClosestObject(out GameObject closest, GameObject[] objects)
+    public bool FindClosestTarget(out GameObject closest)
+    {
+        BaseDistanceResolver dist = new DistanceResolver(transform.position, navMeshAgent);
+        return FindClosestObject(out closest, operativesObj, dist);
+    }
+
+    public bool FindClosestSpawner(out GameObject closest)
+    {
+        BaseDistanceResolver dist = new DistanceResolver(transform.position, navMeshAgent);
+        return FindClosestObject(out closest, spawners, dist);
+    }
+
+    public void MoveToClosestReachableTarget()
+    {
+        MoveToClosestReachableObject(operativesObj);
+    }
+
+    public void MoveToClosestReachableSpawner()
+    {
+        MoveToClosestReachableObject(spawners);
+    }
+    public void MoveToClosestReachableObject(GameObject[] objects)
+    {
+        BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
+        if (FindClosestObject(out target, objects, dist))
+        {
+            navMeshAgent.SetDestination(target.transform.position);
+        }
+    }
+
+    public bool FindClosestReachableTarget(out GameObject closest)
+    {
+        BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
+        return FindClosestObject(out closest, operativesObj, dist);
+    }
+
+    public bool FindClosestReachableSpawner(out GameObject closest)
+    {
+        BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
+        return FindClosestObject(out closest, spawners, dist);
+    }
+
+    public bool FindClosestObject(out GameObject closest, GameObject[] objects, BaseDistanceResolver distance)
     {
         float minDist = float.MaxValue;
         closest = null;
 
         foreach (GameObject obj in objects)
         {
-            float dist = Vector3.Distance(transform.position, obj.transform.position);
+            float dist = distance.Get(obj.transform.position);
             if (dist < minDist)
             {
                 minDist = dist;
@@ -67,16 +120,6 @@ public class Alien : MonoBehaviour
         {
             return true;
         }
-    }
-
-    public bool FindClosestTarget(out GameObject closest)
-    {
-        return FindClosestObject(out closest, operatives);
-    }
-
-    public bool FindClosestSpawner(out GameObject closest)
-    {
-        return FindClosestObject(out closest, spawners);
     }
 
     public void Spawn(Vector3 position)
@@ -110,13 +153,13 @@ public class Alien : MonoBehaviour
     public void SetJumpSpeed()
     {
         navMeshAgent.speed = jumpSpeed;
-        navMeshAgent.acceleration = 8;
+        navMeshAgent.acceleration = 32;
     }
 
     public void SetRunSpeed()
     {
         navMeshAgent.speed = runSpeed;
-        navMeshAgent.acceleration = 32;
+        navMeshAgent.acceleration = 8;
     }
 
     public void SetEscapeSpeed()
@@ -125,8 +168,48 @@ public class Alien : MonoBehaviour
         navMeshAgent.acceleration = 16;
     }
 
-    public void SetPawnController(SpawnerControll _spawnerController)
+    public void SetSpawnController(SpawnerControll _spawnerController)
     {
         spawnerController = _spawnerController;
+    }
+
+    public bool isExposed()
+    {
+        bool exposed = false;
+        List<Transform> visibleTargets;
+        foreach(Unit operative in operatives)
+        {
+            visibleTargets = operative.fieldOfView.GetVisibleTargets();
+            if(exposed = visibleTargets.Contains(transform)) { break; }
+        }
+        return exposed;
+    }
+
+    public GameObject GetTarget()
+    {
+        return target;
+    }
+
+    public void StopNav()
+    {
+        navMeshAgent.isStopped = true;
+    }
+
+    public void StartNav()
+    {
+        navMeshAgent.isStopped = false;
+    }
+
+    public void Angry(float value = .1f)
+    {
+        angryLevel += value;
+        angryLevel = Mathf.Clamp(angryLevel, 0, 1);
+        Debug.Log(string.Format("Alien getting angry {0}", angryLevel));
+    }
+    public void Chill(float value = .1f)
+    {
+        angryLevel -= value;
+        angryLevel = Mathf.Clamp(angryLevel, 0, 1);
+        Debug.Log(string.Format("Alien chill {0}", angryLevel));
     }
 }
