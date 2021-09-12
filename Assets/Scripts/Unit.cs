@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -10,13 +12,18 @@ public class Unit : MonoBehaviour
     public int serialNumber;
     public FieldOfView fieldOfView;
 
+    [HideInInspector]
+    public bool isRotateNeeded { get; set; }
     protected Vector3 destination;
+    protected Vector3 targetRotation;
     protected ScreenControll screenControll;
     protected GameObject toInteract;
+    protected Coroutine moveAndRotateCoroutine;
 
     void Start()
     {
         destination = transform.position;
+        targetRotation = transform.forward;
         screenControll = screens.GetComponent<ScreenControll>();
     }
     void Update()
@@ -49,7 +56,24 @@ public class Unit : MonoBehaviour
     public void SetDestination(Vector3 _destination)
     {
         destination = _destination;
+    }
+    public bool IsSameAsDestination(Vector3 target)
+    {
+        return Vector3.Distance(destination, target) <= 1;
+    }
+    public void SetTargetRotation(Vector3 _targetRotation)
+    {
+        targetRotation = _targetRotation;
+    }
+    public void MoveAndRotate()
+    {
+        navAgent.isStopped = false;
         navAgent.SetDestination(destination);
+        if (moveAndRotateCoroutine != null)
+        {
+            StopCoroutine(moveAndRotateCoroutine);
+        }
+        moveAndRotateCoroutine = StartCoroutine(MoveAndRotateCoroutine());
     }
 
     public void Die()
@@ -64,8 +88,47 @@ public class Unit : MonoBehaviour
     {
         position.y = transform.position.y;
         SetDestination(position);
+        isRotateNeeded = false;
+        MoveAndRotate();
         toInteract = obj;
     }
+    public IEnumerator MoveAndRotateCoroutine()
+    {
+        while (!IsDestinationReached())
+        {
+            yield return new WaitForSeconds(0.3f);
+        }
+        navAgent.isStopped = true;
+        Quaternion lookRotation = Quaternion.identity;
+        if (isRotateNeeded)
+        {
+            StartCoroutine(RotateCoroutine(lookRotation));
+        }
+    }
 
+    public IEnumerator RotateCoroutine(Quaternion lookRotation)
+    {
+        while (!IsRotationFinished(lookRotation))
+        {
+            targetRotation.y = transform.position.y;
+            Vector3 dir = (targetRotation - transform.position).normalized;
+            lookRotation = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5);
+
+            yield return new WaitForSeconds(0.01f);
+        }
+    }
+    public bool IsDestinationReached()
+    {
+        if (navAgent.pathPending) 
+        { 
+            return false; 
+        }
+        return navAgent.remainingDistance < .5;
+    }
+    public bool IsRotationFinished(Quaternion lookRotation)
+    {
+        return Quaternion.Angle(transform.rotation, lookRotation) < 1e-6;
+    }
 
 }

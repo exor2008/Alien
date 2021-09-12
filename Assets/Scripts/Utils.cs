@@ -71,3 +71,9 @@ public class ReachableDistanceResolver : BaseDistanceResolver
         return Mathf.Infinity;
     }
 }
+
+public enum MouseButon
+{
+    Up,
+    Down
+}

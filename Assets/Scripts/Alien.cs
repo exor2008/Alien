@@ -23,7 +23,7 @@ public class Alien : MonoBehaviour
     SpawnerControll spawnerController;
     StateManager stateManager;
     GameObject target;
-    
+
 
 
     void Start()

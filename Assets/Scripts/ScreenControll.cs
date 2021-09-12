@@ -81,9 +81,13 @@ public class ScreenControll : MonoBehaviour
             mainScreenMR.material = screenMaterials[(int)Screens.Main];
             SetMinimapActiveScreen();
         }
+        if (Input.GetMouseButtonDown(0))
+        {
+            OnClick(MouseButon.Down);
+        }
         if (Input.GetMouseButtonUp(0))
         {
-            OnClick();
+            OnClick(MouseButon.Up);
         }
     }
 
@@ -108,7 +112,7 @@ public class ScreenControll : MonoBehaviour
         SetActiveScreen(screen);
     }
 
-    public void OnClick()
+    public void OnClick(MouseButon mouseButton)
     {
         RaycastHit hitScreen;
         Ray clickRay = viewCamera.ScreenPointToRay(Input.mousePosition);
@@ -122,7 +126,7 @@ public class ScreenControll : MonoBehaviour
             // convert point on the screen to world coordinates
             Ray viewRay = activeScreen.ScreenPointToRay(screenPoint);
 
-            ClickReaction reaction = activeScreen.GetReaction(viewRay);
+            ClickReaction reaction = activeScreen.GetReaction(viewRay, mouseButton);
             reaction.React();
         }
     }
@@ -152,7 +156,19 @@ public abstract class ActiveScreen
         camera = _camera;
     }
     protected RaycastHit hitObject;
-    public abstract ClickReaction GetReaction(Ray viewRay);
+    public ClickReaction GetReaction(Ray viewRay, MouseButon upOrDown)
+    {
+        switch (upOrDown)
+        {
+            case MouseButon.Up:
+                return GetReactionUp(viewRay);
+
+            default:
+                return GetReactionDown(viewRay);
+        }
+    }
+    public abstract ClickReaction GetReactionDown(Ray viewRay);
+    public abstract ClickReaction GetReactionUp(Ray viewRay);
 
     public Ray ScreenPointToRay(Vector3 screenPoint)
     {
@@ -164,12 +180,14 @@ public abstract class ActiveScreen
 public class MinimapActiveScreen: ActiveScreen
 {
     OperativesControl operativesControl;
+    LayerMask floorLayer = LayerMask.NameToLayer("Floor");// LayerMask.GetMask("Floor");//(1 << LayerMask.NameToLayer("Floor"));
+    //LayerMask doorLayer = LayerMask.GetMask("Doors");
     public MinimapActiveScreen(Camera _camera, OperativesControl _operativesControl)
         : base(_camera)
     {
         operativesControl = _operativesControl;
     }
-    public override ClickReaction GetReaction(Ray viewRay)
+    public override ClickReaction GetReactionDown(Ray viewRay)
     {
         Door door;
 
@@ -194,8 +212,17 @@ public class MinimapActiveScreen: ActiveScreen
             }
             else
             {
-                return new FloorReaction(hitObject, operativesControl);
+                return new FloorReactionDown(hitObject, operativesControl);
             }
+        }
+        return new NoReaction(hitObject);
+    }
+    public override ClickReaction GetReactionUp(Ray viewRay)
+    {
+        if (Physics.Raycast(viewRay, out hitObject)
+            && hitObject.collider.gameObject.layer == floorLayer)
+        {
+            return new FloorReactionUp(hitObject, operativesControl);
         }
         return new NoReaction(hitObject);
     }
@@ -204,11 +231,11 @@ public class MinimapActiveScreen: ActiveScreen
 public class OperativeActiveScreen : ActiveScreen
 {
     Unit operative;
-    public OperativeActiveScreen(Camera _camera, Unit _operative) : base(_camera) 
+    public OperativeActiveScreen(Camera _camera, Unit _operative) : base(_camera)
     {
         operative = _operative;
     }
-    public override ClickReaction GetReaction(Ray viewRay)
+    public override ClickReaction GetReactionDown(Ray viewRay)
     {
         Alien alien;
         Door door;
@@ -229,6 +256,10 @@ public class OperativeActiveScreen : ActiveScreen
                 }
             }
         }
+        return new NoReaction(hitObject);
+    }
+    public override ClickReaction GetReactionUp(Ray viewRay)
+    {
         return new NoReaction(hitObject);
     }
 }
@@ -272,11 +303,11 @@ public class ManualDoorReaction : ClickReaction
     }
 }
 
-public class FloorReaction : ClickReaction
+public class FloorReactionDown : ClickReaction
 {
-    OperativesControl operativesControl;
+    protected OperativesControl operativesControl;
 
-    public FloorReaction(
+    public FloorReactionDown(
         RaycastHit hitInfo, 
         OperativesControl _operativesControl) : base(hitInfo) 
     {
@@ -292,6 +323,23 @@ public class FloorReaction : ClickReaction
     }
 }
 
+public class FloorReactionUp : FloorReactionDown
+{
+    public FloorReactionUp(
+        RaycastHit hitInfo,
+        OperativesControl _operativesControl) : base(hitInfo, _operativesControl) { }
+
+    public override void React()
+    {
+        GameObject operativeObj = operativesControl.GetCurrentOperative();
+        Unit operative = operativeObj.GetComponent<Unit>();
+        Vector3 targetRotation = hitInfo.point;
+        operative.isRotateNeeded = !operative.IsSameAsDestination(targetRotation);
+
+        operative.SetTargetRotation(targetRotation);
+        operative.MoveAndRotate();
+    }
+}
 public class AlienFleeReaction : ClickReaction
 {
     public AlienFleeReaction(
