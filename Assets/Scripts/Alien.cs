@@ -42,35 +42,6 @@ public class Alien : MonoBehaviour
         stateManager.Updtae();
     }
 
-    public void MoveToClosestTarget()
-    {
-        MoveToClosestObject(operativesObj);
-    }
-
-    public void MoveToClosestSpawner()
-    {
-        MoveToClosestObject(spawners);
-    }
-    public void MoveToClosestObject(GameObject[] objects)
-    {
-        BaseDistanceResolver dist = new DistanceResolver(transform.position, navMeshAgent);
-        if (FindClosestObject(out target, objects, dist))
-        {
-            navMeshAgent.SetDestination(target.transform.position);
-        }
-    }
-    public bool FindClosestTarget(out GameObject closest)
-    {
-        BaseDistanceResolver dist = new DistanceResolver(transform.position, navMeshAgent);
-        return FindClosestObject(out closest, operativesObj, dist);
-    }
-
-    public bool FindClosestSpawner(out GameObject closest)
-    {
-        BaseDistanceResolver dist = new DistanceResolver(transform.position, navMeshAgent);
-        return FindClosestObject(out closest, spawners, dist);
-    }
-
     public void MoveToClosestReachableTarget()
     {
         MoveToClosestReachableObject(operativesObj);
@@ -83,7 +54,7 @@ public class Alien : MonoBehaviour
     public void MoveToClosestReachableObject(GameObject[] objects)
     {
         BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
-        if (FindClosestObject(out target, objects, dist))
+        if (Find.ClosestReachableObject(transform.position, navMeshAgent, operativesObj, out target))
         {
             navMeshAgent.SetDestination(target.transform.position);
         }
@@ -91,36 +62,14 @@ public class Alien : MonoBehaviour
 
     public bool FindClosestReachableTarget(out GameObject closest)
     {
-        BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
-        return FindClosestObject(out closest, operativesObj, dist);
+        return Find.ClosestReachableObject(
+            transform.position, navMeshAgent, operativesObj, out closest);
     }
 
     public bool FindClosestReachableSpawner(out GameObject closest)
     {
-        BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
-        return FindClosestObject(out closest, spawners, dist);
-    }
-
-    public bool FindClosestObject(out GameObject closest, GameObject[] objects, BaseDistanceResolver distance)
-    {
-        float minDist = float.MaxValue;
-        closest = null;
-
-        foreach (GameObject obj in objects)
-        {
-            float dist = distance.Get(obj.transform.position);
-            if (dist < minDist)
-            {
-                minDist = dist;
-                closest = obj;
-            }
-        }
-        if (closest == null)
-            return false;
-        else
-        {
-            return true;
-        }
+        return Find.ClosestReachableObject(
+            transform.position, navMeshAgent, spawners, out closest);
     }
 
     public void Spawn(Vector3 position)

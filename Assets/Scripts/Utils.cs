@@ -77,3 +77,39 @@ public enum MouseButon
     Up,
     Down
 }
+
+static class Find
+{
+    static bool _ClosestObject(out GameObject closest, GameObject[] objects, BaseDistanceResolver distance)
+    {
+        float minDist = float.MaxValue;
+        closest = null;
+
+        foreach (GameObject obj in objects)
+        {
+            float dist = distance.Get(obj.transform.position);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                closest = obj;
+            }
+        }
+        if (closest == null)
+            return false;
+        else
+        {
+            return true;
+        }
+    }
+
+    public static bool ClosestReachableObject(Vector3 from, NavMeshAgent navMeshAgent, GameObject[] objects, out GameObject closest)
+    {
+        BaseDistanceResolver dist = new ReachableDistanceResolver(from, navMeshAgent);
+        return _ClosestObject(out closest, objects, dist);
+    }
+    public static bool ClosestObject(Vector3 from, NavMeshAgent navMeshAgent, GameObject[] objects, out GameObject closest)
+    {
+        BaseDistanceResolver dist = new DistanceResolver(from, navMeshAgent);
+        return _ClosestObject(out closest, objects, dist);
+    }
+}

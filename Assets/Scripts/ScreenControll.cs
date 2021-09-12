@@ -293,13 +293,21 @@ public class AutomaticDoorReaction: ClickReaction
 public class ManualDoorReaction : ClickReaction
 {
     Unit operative;
+    Door door;
+    GameObject approach;
+
     public ManualDoorReaction(RaycastHit hitInfo, Unit _operative) : base(hitInfo) 
     {
         operative = _operative;
+        door = hitInfo.collider.gameObject.GetComponent<Door>();
     }
     public override void React()
     {
-        operative.InteractWith(hitInfo.collider.gameObject, hitInfo.point);
+        approach = door.GetClosestApproach(operative.transform.position, operative.navAgent);
+        if (approach)
+        {
+            operative.InteractWith(hitInfo.collider.gameObject, approach.transform.position);
+        }
     }
 }
 

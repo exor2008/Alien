@@ -26,16 +26,12 @@ public class Unit : MonoBehaviour
         targetRotation = transform.forward;
         screenControll = screens.GetComponent<ScreenControll>();
     }
-    void Update()
-    {
-        Interact();
-    }
 
-    private void Interact()
+    public void OnTriggerStay(Collider other)
     {
-        if (toInteract != null && Distance(toInteract.transform) < 2)
+        if (toInteract == other.transform.parent.gameObject)
         {
-            Interactable item = toInteract.GetComponent<Interactable>();
+            Interactable item = other.GetComponentInParent<Interactable>();
             item.Interact(gameObject);
             toInteract = null;
         }

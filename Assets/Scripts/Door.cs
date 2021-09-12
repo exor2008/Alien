@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Door : MonoBehaviour, Interactable
 {
     public Material automateMaterial;
     public Material manualMaterial;
     public Material unpoweredMaterial;
+    public GameObject[] approaches;
 
     public bool isAutotomate;
     public bool isPowered;
@@ -24,11 +26,19 @@ public class Door : MonoBehaviour, Interactable
         
     }
 
+    void MoveTriggers(Vector3 value)
+    {
+        foreach(GameObject approach in approaches)
+        {
+            approach.transform.position += value;
+        }
+    }
     public void Open()
     {
         if (!isOpened)
         {
             transform.position += Vector3.up * 4;
+            MoveTriggers(-Vector3.up * 4);
             isOpened = true;
         }
     }
@@ -38,6 +48,7 @@ public class Door : MonoBehaviour, Interactable
         if (isOpened)
         {
             transform.position -= Vector3.up * 4;
+            MoveTriggers(Vector3.up * 4);
             isOpened = false;
         }
     }
@@ -91,5 +102,15 @@ public class Door : MonoBehaviour, Interactable
         {
             SetManual();
         }
+    }
+
+    public GameObject GetClosestApproach(Vector3 position, NavMeshAgent navAgent)
+    {
+        GameObject closest;
+        if (Find.ClosestReachableObject(position, navAgent, approaches, out closest))
+        {
+            return closest;
+        }
+        return null;
     }
 }

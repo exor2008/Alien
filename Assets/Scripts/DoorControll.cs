@@ -10,7 +10,7 @@ public class DoorControll : MonoBehaviour
         doors = GetComponentsInChildren<Door>();
         foreach (Door door in doors)
         {
-            if (door.gameObject.name == "DoorPrefab (1)" || door.gameObject.name == "DoorPrefab (2)")
+            if (door.gameObject.name == "DoorPrefab (2)" || door.gameObject.name == "DoorPrefab (3)")
             {
                 door.SetAutomate();
                 continue;
