@@ -65,13 +65,48 @@ public class Unit : MonoBehaviour
     {
         navAgent.isStopped = false;
         navAgent.SetDestination(destination);
+        StopMoveOrRotateCoroutine();
+        moveAndRotateCoroutine = StartCoroutine(MoveAndRotateCoroutine());
+    }
+    public void Rotate()
+    {
+        navAgent.isStopped = true;
+        StopMoveOrRotateCoroutine();
+        moveAndRotateCoroutine = StartCoroutine(RotateCoroutine());
+    }
+    void StopMoveOrRotateCoroutine()
+    {
         if (moveAndRotateCoroutine != null)
         {
             StopCoroutine(moveAndRotateCoroutine);
         }
-        moveAndRotateCoroutine = StartCoroutine(MoveAndRotateCoroutine());
     }
+    public IEnumerator MoveAndRotateCoroutine()
+    {
+        while (!IsDestinationReached())
+        {
+            yield return new WaitForSeconds(0.3f);
+        }
+        navAgent.isStopped = true;
 
+        if (isRotateNeeded)
+        {
+            Rotate();
+        }
+    }
+    public IEnumerator RotateCoroutine()
+    {
+        Quaternion lookRotation = Quaternion.identity;
+        while (!IsRotationFinished(lookRotation))
+        {
+            targetRotation.y = transform.position.y;
+            Vector3 dir = (targetRotation - transform.position).normalized;
+            lookRotation = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5);
+
+            yield return new WaitForSeconds(0.01f);
+        }
+    }
     public void Die()
     {
         navAgent.Warp(new Vector3(130, 2, -20));
@@ -87,32 +122,6 @@ public class Unit : MonoBehaviour
         isRotateNeeded = false;
         MoveAndRotate();
         toInteract = obj;
-    }
-    public IEnumerator MoveAndRotateCoroutine()
-    {
-        while (!IsDestinationReached())
-        {
-            yield return new WaitForSeconds(0.3f);
-        }
-        navAgent.isStopped = true;
-        Quaternion lookRotation = Quaternion.identity;
-        if (isRotateNeeded)
-        {
-            StartCoroutine(RotateCoroutine(lookRotation));
-        }
-    }
-
-    public IEnumerator RotateCoroutine(Quaternion lookRotation)
-    {
-        while (!IsRotationFinished(lookRotation))
-        {
-            targetRotation.y = transform.position.y;
-            Vector3 dir = (targetRotation - transform.position).normalized;
-            lookRotation = Quaternion.LookRotation(dir);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5);
-
-            yield return new WaitForSeconds(0.01f);
-        }
     }
     public bool IsDestinationReached()
     {

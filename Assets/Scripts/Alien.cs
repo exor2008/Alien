@@ -54,7 +54,7 @@ public class Alien : MonoBehaviour
     public void MoveToClosestReachableObject(GameObject[] objects)
     {
         BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
-        if (Find.ClosestReachableObject(transform.position, navMeshAgent, operativesObj, out target))
+        if (Find.ClosestReachableObject(transform.position, navMeshAgent, objects, out target))
         {
             navMeshAgent.SetDestination(target.transform.position);
         }
