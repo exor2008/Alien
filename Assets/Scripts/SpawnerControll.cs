@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,17 +6,19 @@ using UnityEngine;
 public class SpawnerControll : MonoBehaviour
 {
     public GameObject[] spawners;
-    public GameObject[] operatives;
+    public OperativesControl operativesControl;
     public GameObject alienObj;
     public float spawnDelay;
     
     public float timeSinceSpawn;
+    Unit[] operatives;
     Alien alien;
 
     void Start()
     {
         alien = alienObj.GetComponent<Alien>();
         alien.SetSpawnController(this);
+        operatives = operativesControl.GetOperatives();
     }
 
     void Update()
@@ -41,7 +44,24 @@ public class SpawnerControll : MonoBehaviour
 
     GameObject ChooseSpawner()
     {
-        int spawnerIdx = Random.Range(0, spawners.Length - 1);
-        return spawners[spawnerIdx];
+        const int N_CLOSEST_SPAWNERS = 3;
+        GameObject spawner = null;
+        
+        foreach (Unit operative in operativesControl.GetAliveShuffledOperatives())
+        {
+            if(Find.OneOfNReachableClosest(
+                N_CLOSEST_SPAWNERS,
+                operative.transform.position,
+                operative.navAgent,
+                spawners,
+                out spawner))
+            {
+                return spawner;
+            }
+
+
+        }
+        //TODO : что делать, если оперативники недоступны с любого спауна?
+        return spawners[0];
     }
 }

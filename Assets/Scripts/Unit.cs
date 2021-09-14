@@ -11,6 +11,7 @@ public class Unit : MonoBehaviour
     public bool isCurrent;
     public int serialNumber;
     public FieldOfView fieldOfView;
+    public bool isAlive;
 
     [HideInInspector]
     public bool isRotateNeeded { get; set; }
@@ -25,6 +26,7 @@ public class Unit : MonoBehaviour
         destination = transform.position;
         targetRotation = transform.forward;
         screenControll = screens.GetComponent<ScreenControll>();
+        isAlive = true;
     }
 
     public void OnTriggerStay(Collider other)
@@ -113,6 +115,7 @@ public class Unit : MonoBehaviour
         navAgent.isStopped = true;
         screenControll.ShutDown(serialNumber);
         fieldOfView.Die();
+        isAlive = false;
     }
 
     public void InteractWith(GameObject obj, Vector3 position)

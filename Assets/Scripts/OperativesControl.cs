@@ -1,23 +1,17 @@
-using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class OperativesControl : MonoBehaviour
 {
-    const int OPERATIVES_COUNT = 4;
-    public GameObject[] operatives;
-    protected Unit[] units = new Unit[OPERATIVES_COUNT];
+    public GameObject[] operativesObjects;
+    protected Unit[] operatives;
     public int currentOperativeIdx;
 
     void Start()
     {
         currentOperativeIdx = 0;
-        for (int i = 0; i < OPERATIVES_COUNT; i++)
-        {
-            GameObject operative = operatives[i];
-            Unit unit = operative.GetComponent<Unit>();
-            units[i] = unit;
-        }
+        operatives = Utils.GetComponentArray<Unit>(operativesObjects);
     }
 
     void Update()
@@ -42,18 +36,40 @@ public class OperativesControl : MonoBehaviour
 
     void SwitchCurrentOperative(int activeIdx)
     {
-        units[currentOperativeIdx].SetCurrent(false);
+        operatives[currentOperativeIdx].SetCurrent(false);
         currentOperativeIdx = activeIdx;
-        units[currentOperativeIdx].SetCurrent(true);
+        operatives[currentOperativeIdx].SetCurrent(true);
     }
 
     public GameObject GetCurrentOperative()
     {
-        return operatives[currentOperativeIdx];
+        return operativesObjects[currentOperativeIdx];
     }
 
     public GameObject GetOperative(int index)
     {
-        return operatives[index];
+        return operativesObjects[index];
+    }
+
+    public Unit[] GetAliveOperatives()
+    {
+        List<Unit> alive = new List<Unit>(operatives);
+        alive.Where(x => x.isAlive);
+        return alive.ToArray();
+    }
+
+    public Unit[] GetAliveShuffledOperatives()
+    {
+        System.Random rand = new System.Random();
+
+        List<Unit> alive = new List<Unit>(operatives);
+        alive.Where(x => x.isAlive);
+        List<Unit> aliveShufled = alive.OrderBy(x => rand.Next()).ToList();
+        return aliveShufled.ToArray();
+    }
+
+    public Unit[] GetOperatives()
+    {
+        return operatives;
     }
 }
