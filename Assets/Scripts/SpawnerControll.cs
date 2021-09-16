@@ -11,7 +11,7 @@ public class SpawnerControll : MonoBehaviour
     public float spawnDelay;
     
     public float timeSinceSpawn;
-    Unit[] operatives;
+    Operative[] operatives;
     Alien alien;
 
     void Start()
@@ -47,7 +47,7 @@ public class SpawnerControll : MonoBehaviour
         const int N_CLOSEST_SPAWNERS = 3;
         GameObject spawner = null;
         
-        foreach (Unit operative in operativesControl.GetAliveShuffledOperatives())
+        foreach (Operative operative in operativesControl.GetAliveShuffledOperatives())
         {
             if(Find.OneOfNReachableClosest(
                 N_CLOSEST_SPAWNERS,

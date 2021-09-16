@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Game.AlienStatesNamespace;
 
 public class Alien : MonoBehaviour
 {
@@ -19,12 +20,10 @@ public class Alien : MonoBehaviour
 
     [HideInInspector]
     public ReactionResolver reactionResolver;
-    Unit[] operatives = new Unit[4];
+    Operative[] operatives = new Operative[4];
     SpawnerControll spawnerController;
     StateManager stateManager;
     GameObject target;
-
-
 
     void Start()
     {
@@ -32,7 +31,7 @@ public class Alien : MonoBehaviour
         reactionResolver = new ReactionResolver(this);
         for (int i = 0; i < operativesObj.Length; i++)
         {
-            operatives[i] = operativesObj[i].GetComponent<Unit>();
+            operatives[i] = operativesObj[i].GetComponent<Operative>();
         }
         StartCoroutine(ChillOverTime(chillCooldown));
     }
@@ -127,7 +126,7 @@ public class Alien : MonoBehaviour
     {
         bool exposed = false;
         List<Transform> visibleTargets;
-        foreach(Unit operative in operatives)
+        foreach(Operative operative in operatives)
         {
             visibleTargets = operative.fieldOfView.GetVisibleTargets();
             if(exposed = visibleTargets.Contains(transform)) { break; }

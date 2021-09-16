@@ -5,13 +5,13 @@ using UnityEngine;
 public class OperativesControl : MonoBehaviour
 {
     public GameObject[] operativesObjects;
-    protected Unit[] operatives;
+    protected Operative[] operatives;
     public int currentOperativeIdx;
 
     void Start()
     {
         currentOperativeIdx = 0;
-        operatives = Utils.GetComponentArray<Unit>(operativesObjects);
+        operatives = Utils.GetComponentArray<Operative>(operativesObjects);
     }
 
     void Update()
@@ -51,24 +51,24 @@ public class OperativesControl : MonoBehaviour
         return operativesObjects[index];
     }
 
-    public Unit[] GetAliveOperatives()
+    public Operative[] GetAliveOperatives()
     {
-        List<Unit> alive = new List<Unit>(operatives);
+        List<Operative> alive = new List<Operative>(operatives);
         alive.Where(x => x.isAlive);
         return alive.ToArray();
     }
 
-    public Unit[] GetAliveShuffledOperatives()
+    public Operative[] GetAliveShuffledOperatives()
     {
         System.Random rand = new System.Random();
 
-        List<Unit> alive = new List<Unit>(operatives);
+        List<Operative> alive = new List<Operative>(operatives);
         alive.Where(x => x.isAlive);
-        List<Unit> aliveShufled = alive.OrderBy(x => rand.Next()).ToList();
+        List<Operative> aliveShufled = alive.OrderBy(x => rand.Next()).ToList();
         return aliveShufled.ToArray();
     }
 
-    public Unit[] GetOperatives()
+    public Operative[] GetOperatives()
     {
         return operatives;
     }

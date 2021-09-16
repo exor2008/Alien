@@ -1,6 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using EscapeState = Game.AlienStatesNamespace.EscapeState;
+using GoToInteractState = Game.OperativeStatesNamespace.GoToInteractState;
+using MoveState = Game.OperativeStatesNamespace.MoveState;
+using RotateState = Game.OperativeStatesNamespace.RotateState;
 
 public enum Screens
 {
@@ -107,7 +111,7 @@ public class ScreenControll : MonoBehaviour
         GameObject operativeObj = operativesControl.GetOperative(operativeIdx);
         Transform cameraTransform = operativeObj.transform.Find("Camera");
         Camera camera = cameraTransform.GetComponent<Camera>();
-        Unit operative = operativeObj.GetComponent<Unit>();
+        Operative operative = operativeObj.GetComponent<Operative>();
         ActiveScreen screen = new OperativeActiveScreen(camera, operative);
         SetActiveScreen(screen);
     }
@@ -206,7 +210,7 @@ public class MinimapActiveScreen: ActiveScreen
                     else
                     {
                         GameObject operativeObj = operativesControl.GetCurrentOperative();
-                        Unit operative = operativeObj.GetComponent<Unit>();
+                        Operative operative = operativeObj.GetComponent<Operative>();
                         return new ManualDoorReaction(hitObject, operative);
                     }
                 }
@@ -233,8 +237,8 @@ public class MinimapActiveScreen: ActiveScreen
 #region Operative Screen
 public class OperativeActiveScreen : ActiveScreen
 {
-    Unit operative;
-    public OperativeActiveScreen(Camera _camera, Unit _operative) : base(_camera)
+    Operative operative;
+    public OperativeActiveScreen(Camera _camera, Operative _operative) : base(_camera)
     {
         operative = _operative;
     }
@@ -300,11 +304,11 @@ public class AutomaticDoorReaction: ClickReaction
 
 public class ManualDoorReaction : ClickReaction
 {
-    Unit operative;
+    Operative operative;
     Door door;
     GameObject approach;
 
-    public ManualDoorReaction(RaycastHit hitInfo, Unit _operative) : base(hitInfo) 
+    public ManualDoorReaction(RaycastHit hitInfo, Operative _operative) : base(hitInfo) 
     {
         operative = _operative;
         door = hitInfo.collider.gameObject.GetComponent<Door>();
@@ -314,7 +318,9 @@ public class ManualDoorReaction : ClickReaction
         approach = door.GetClosestApproach(operative.transform.position, operative.navAgent);
         if (approach)
         {
-            operative.InteractWith(hitInfo.collider.gameObject, approach.transform.position);
+            operative.SwitchState(
+                new GoToInteractState(
+                    operative, hitInfo.collider.gameObject, approach.transform.position));
         }
     }
 }
@@ -334,8 +340,8 @@ public class FloorReactionDown : ClickReaction
         Vector3 destination = hitInfo.point;
         destination.y = 2;
         GameObject operative = operativesControl.GetCurrentOperative();
-        Unit unit = operative.GetComponent<Unit>();
-        unit.SetDestination(destination);
+        Operative unit = operative.GetComponent<Operative>();
+        unit.Destination = destination;
     }
 }
 
@@ -348,12 +354,12 @@ public class FloorReactionUp : FloorReactionDown
     public override void React()
     {
         GameObject operativeObj = operativesControl.GetCurrentOperative();
-        Unit operative = operativeObj.GetComponent<Unit>();
+        Operative operative = operativeObj.GetComponent<Operative>();
         Vector3 targetRotation = hitInfo.point;
         operative.isRotateNeeded = !operative.IsSameAsDestination(targetRotation);
 
-        operative.SetTargetRotation(targetRotation);
-        operative.MoveAndRotate();
+        operative.TargetRotation = targetRotation;
+        operative.SwitchState(new MoveState(operative));
     }
 }
 public class AlienFleeReaction : ClickReaction
@@ -370,17 +376,17 @@ public class AlienFleeReaction : ClickReaction
 }
 public class TurnOperativeReaction : ClickReaction
 {
-    Unit operative;
+    Operative operative;
     public TurnOperativeReaction(
-        RaycastHit hitinfo, Unit _operative) : base(hitinfo)
+        RaycastHit hitinfo, Operative _operative) : base(hitinfo)
     {
         operative = _operative;
     }
     public override void React()
     {
         Vector3 targetRotation = hitInfo.point;
-        operative.SetTargetRotation(targetRotation);
-        operative.Rotate();
+        operative.TargetRotation = targetRotation;
+        operative.SwitchState(new RotateState(operative));
     }
 }
 #endregion
