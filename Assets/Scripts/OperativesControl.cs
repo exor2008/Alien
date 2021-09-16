@@ -58,6 +58,13 @@ public class OperativesControl : MonoBehaviour
         return alive.ToArray();
     }
 
+    public GameObject[] GetAliveOperativesObjects()
+    {
+        List<GameObject> alive = new List<GameObject>(operativesObjects);
+        alive.Where(x => x.GetComponent<Operative>().isAlive);
+        return alive.ToArray();
+    }
+
     public Operative[] GetAliveShuffledOperatives()
     {
         System.Random rand = new System.Random();

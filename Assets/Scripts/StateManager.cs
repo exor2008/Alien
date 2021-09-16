@@ -21,16 +21,6 @@ public class StateManager
         }
     }
 
-    public void FixedUpdate()
-    {
-        currentState?.FixedUpdate();
-    }
-
-    public void LateUpdate()
-    {
-        currentState?.LateUpdate();
-    }
-
     public void SwitchState(State newState)
     {
         currentState = newState;

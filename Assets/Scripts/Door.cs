@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Door : MonoBehaviour, Interactable
+public class Door : MonoBehaviour, Interactable, Breakable
 {
     public Material automateMaterial;
     public Material manualMaterial;
@@ -68,6 +68,12 @@ public class Door : MonoBehaviour, Interactable
     public void Interact(GameObject who)
     {
         Switch();
+    }
+
+    public void Break(GameObject who)
+    {
+        Open();
+        SetUnpowered();
     }
 
     public void SetAutomate()

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DoorControll : MonoBehaviour
+public class DoorControl : MonoBehaviour
 {
     Door[] doors;
     void Start()
@@ -44,5 +44,19 @@ public class DoorControll : MonoBehaviour
         {
             door.SetUnpowered();
         }
+    }
+
+    public GameObject[] GetDoorsObjects()
+    {
+        GameObject[] doorsObjs = new GameObject[doors.Length];
+        for (int i = 0; i < doors.Length; i++)
+        {
+            doorsObjs[i] = doors[i].gameObject;
+        }
+        return doorsObjs;
+    }
+    public Door[] GetDoors()
+    {
+        return doors;
     }
 }

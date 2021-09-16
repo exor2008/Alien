@@ -10,8 +10,6 @@ namespace Game.AlienStatesNamespace
             alien = _alien;
         }
         public abstract State Update();
-        public abstract void FixedUpdate();
-        public abstract void LateUpdate();
     }
 
     public class IdleState : AlienState
@@ -25,22 +23,34 @@ namespace Game.AlienStatesNamespace
         {
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
+    public class ChooseVictim : AlienState
+    {
+        GameObject victim;
+        public ChooseVictim(Alien alien) : base(alien) { }
+        public override State Update()
+        {
+            if (alien.FindClosestReachableTarget(out victim))
+            {
+                return new HuntState(alien, victim);
+            }
+            return new IdleState(alien);
+        }
+    }
     public class HuntState : AlienState
     {
+        GameObject victim;
         RaycastHit hit;
-        public HuntState(Alien alien) : base(alien)
+        public HuntState(Alien alien, GameObject _victim) : base(alien)
         {
             alien.StartNav();
             Debug.Log("Alien start Hunting");
             alien.SetRunSpeed();
+            alien.Destination = _victim.transform.position;
         }
         public override State Update()
         {
-            alien.MoveToClosestReachableTarget();
             if (alien.isExposed() && alien.reactionResolver.isGoingStalking())
             {
                 float stalkTime = alien.reactionResolver.stalkTime();
@@ -52,8 +62,6 @@ namespace Game.AlienStatesNamespace
             }
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class PrepareJumpState : AlienState
@@ -75,8 +83,6 @@ namespace Game.AlienStatesNamespace
             }
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
     public class JumpAttackState : AlienState
     {
@@ -97,8 +103,6 @@ namespace Game.AlienStatesNamespace
             }
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class KillState : AlienState
@@ -116,8 +120,6 @@ namespace Game.AlienStatesNamespace
             operative.Die();
             return new EscapeState(alien);
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class EscapeState : AlienState
@@ -149,8 +151,6 @@ namespace Game.AlienStatesNamespace
                 return new IdleState(alien);
             }
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class HideState : AlienState
@@ -163,8 +163,6 @@ namespace Game.AlienStatesNamespace
             alien.Hide();
             return new IdleState(alien);
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class StalkState : AlienState
@@ -188,7 +186,7 @@ namespace Game.AlienStatesNamespace
             {
                 if (alien.reactionResolver.isGoingHunting())
                 {
-                    return new HuntState(alien);
+                    return new ChooseVictim(alien);
                 }
                 else
                 {
@@ -200,8 +198,38 @@ namespace Game.AlienStatesNamespace
             }
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
+    }
+    public class GoToBreakState : AlienState
+    {
+        public GoToBreakState(Alien alien, GameObject obj, Vector3 target)
+            : base(alien)
+        {
+            alien.Destination = target;
+            alien.StartNav();
+            alien.ToBreak = obj;
+            Debug.Log("Alien going to break the door");
+        }
+        public override State Update()
+        {
+            return this;
+        }
+    }
+
+    public class BreakState : AlienState
+    {
+        public BreakState(Alien alien, GameObject _obj)
+            : base(alien)
+        {
+            alien.StopNav();
+            Breakable item = _obj.GetComponentInParent<Breakable>();
+            item.Break(alien.gameObject);
+            alien.ToBreak = null;
+            Debug.Log("Alien broke the door");
+        }
+        public override State Update()
+        {
+            return new EscapeState(alien);
+        }
     }
 
     public class ReactionResolver

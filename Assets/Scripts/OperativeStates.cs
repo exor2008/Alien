@@ -10,8 +10,6 @@ namespace Game.OperativeStatesNamespace
             operative = _operative;
         }
         public abstract State Update();
-        public abstract void FixedUpdate();
-        public abstract void LateUpdate();
     }
 
     public class IdleState : OperativeState
@@ -24,8 +22,6 @@ namespace Game.OperativeStatesNamespace
         {
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class GoToInteractState : OperativeState
@@ -42,8 +38,6 @@ namespace Game.OperativeStatesNamespace
         {
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class InteractState : OperativeState
@@ -60,8 +54,6 @@ namespace Game.OperativeStatesNamespace
         {
             return new IdleState(operative);
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class MoveState : OperativeState
@@ -79,8 +71,6 @@ namespace Game.OperativeStatesNamespace
             }
             return this;
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 
     public class RotateState : OperativeState
@@ -102,7 +92,5 @@ namespace Game.OperativeStatesNamespace
             }
             return new IdleState(operative);
         }
-        public override void FixedUpdate() { }
-        public override void LateUpdate() { }
     }
 }
