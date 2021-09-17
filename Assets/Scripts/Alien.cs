@@ -12,6 +12,7 @@ public class Alien : MonoBehaviour
     public DoorControl doorControl;
     public GameObject[] spawners;
     public NavMeshAgent navMeshAgent;
+    public RoamPointsControl roamPointsControl;
     public float runSpeed;
     public float jumpSpeed;
     public float escapeSpeed;
@@ -46,10 +47,6 @@ public class Alien : MonoBehaviour
     {
         stateManager = new StateManager(new IdleState(this));
         reactionResolver = new ReactionResolver(this);
-        //for (int i = 0; i < operativesObj.Length; i++)
-        //{
-        //    operatives[i] = operativesObj[i].GetComponent<Operative>();
-        //}
         StartCoroutine(ChillOverTime(chillCooldown));
     }
 
@@ -110,23 +107,9 @@ public class Alien : MonoBehaviour
 
     public void Spawn(Vector3 position)
     {
-        // TODO: сдклать SpawnState вместо этого
         navMeshAgent.Warp(position);
         isSpawned = true;
-        GameObject closestDoor;
-        if (FindClosestReachableClosedDoor(out closestDoor))
-        {
-            Door door = closestDoor.GetComponent<Door>();
-            GameObject approach = door.GetClosestApproach(transform.position, navMeshAgent);
-            if (approach)
-            {
-                SwitchState(new GoToBreakState(this, closestDoor, approach.transform.position));
-                return;
-            }
-        }
-
-        SwitchState(new ChooseVictim(this));
-
+        SwitchState(new SpawnState(this));
     }
 
     public void Hide()
@@ -177,7 +160,7 @@ public class Alien : MonoBehaviour
     {
         bool exposed = false;
         List<Transform> visibleTargets;
-        foreach(Operative operative in operatives)
+        foreach(Operative operative in operativesControl.GetAliveOperatives())
         {
             visibleTargets = operative.fieldOfView.GetVisibleTargets();
             if(exposed = visibleTargets.Contains(transform)) { break; }
@@ -217,5 +200,10 @@ public class Alien : MonoBehaviour
     {
         Chill();
         yield return new WaitForSeconds(cooldown);
+    }
+
+    public GameObject[] GetRoamPoints()
+    {
+        return roamPointsControl.GetPointsObjects();
     }
 }
