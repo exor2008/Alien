@@ -32,16 +32,21 @@ public class Alien : MonoBehaviour
             navMeshAgent.SetDestination(destination);
         }
     }
+    public GameObject Target 
+    { 
+        get => _target; 
+        set => _target = value; 
+    }
+    GameObject _target;
+
+    public GameObject EscapeSpawner { get; set; }
     public GameObject ToBreak { get; set; }
 
     Vector3 destination;
     [HideInInspector]
     public ReactionResolver reactionResolver;
-    Operative[] operatives = new Operative[4];
     SpawnerControll spawnerController;
     StateManager stateManager;
-    GameObject target;
-    
 
     void Start()
     {
@@ -60,6 +65,14 @@ public class Alien : MonoBehaviour
         {
             SwitchState(new BreakState(this, ToBreak));
         }
+        else if (EscapeSpawner == other.gameObject)
+        {
+            SwitchState(new HideState(this));
+        }
+        else if (Target == other.gameObject)
+        {
+            SwitchState(new KillState(this, Target.GetComponent<Operative>()));
+        }
     }
     public void MoveToClosestReachableTarget()
     {
@@ -74,9 +87,9 @@ public class Alien : MonoBehaviour
     public void MoveToClosestReachableObject(GameObject[] objects)
     {
         BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
-        if (Find.ClosestReachableObject(transform.position, navMeshAgent, objects, out target))
+        if (Find.ClosestReachableObject(transform.position, navMeshAgent, objects, out _target))
         {
-            navMeshAgent.SetDestination(target.transform.position);
+            navMeshAgent.SetDestination(Target.transform.position);
         }
     }
 
@@ -98,7 +111,7 @@ public class Alien : MonoBehaviour
         doors = doors.Where(x => !x.isOpened).ToList();
         GameObject[] doorObjects = doors.Select(door => door.gameObject).ToArray();
 
-        return Find.ClosestObject(
+        return Find.ClosestReachableObject(
             transform.position,
             navMeshAgent,
             doorObjects,
@@ -128,7 +141,7 @@ public class Alien : MonoBehaviour
     {
         if (Physics.Raycast(transform.position, transform.forward, out hit))
         {
-            return hit.collider == target?.GetComponent<Collider>();
+            return hit.collider == Target?.GetComponent<Collider>();
         }
         return false;
     }
@@ -170,7 +183,7 @@ public class Alien : MonoBehaviour
 
     public GameObject GetTarget()
     {
-        return target;
+        return Target;
     }
 
     public void StopNav()
@@ -205,5 +218,10 @@ public class Alien : MonoBehaviour
     public GameObject[] GetRoamPoints()
     {
         return roamPointsControl.GetPointsObjects();
+    }
+
+    public bool isPathComplete()
+    {
+        return navMeshAgent.path.status == NavMeshPathStatus.PathComplete;
     }
 }

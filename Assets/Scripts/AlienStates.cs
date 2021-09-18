@@ -125,9 +125,19 @@ namespace Game.AlienStatesNamespace
             Debug.Log("Alien start Hunting");
             alien.SetRunSpeed();
             alien.Destination = _victim.transform.position;
+            alien.Target = _victim;
+            victim = _victim;
         }
         public override State Update()
         {
+            if (!alien.isPathComplete())
+            {
+                return new SpawnState(alien);
+            }
+            if (alien.navMeshAgent.remainingDistance <= 1e-6)
+            {
+                alien.Destination = victim.transform.position;
+            }
             if (alien.isExposed() && alien.reactionResolver.isGoingStalking())
             {
                 float stalkTime = alien.reactionResolver.stalkTime();
@@ -156,28 +166,23 @@ namespace Game.AlienStatesNamespace
         {
             if (Time.time - start > lenght)
             {
-                return new JumpAttackState(alien);
+                return new JumpAttackState(alien, alien.Target.transform.position);
             }
             return this;
         }
     }
     public class JumpAttackState : AlienState
     {
-        RaycastHit hit;
-        public JumpAttackState(Alien alien) : base(alien)
+        //RaycastHit hit;
+        public JumpAttackState(Alien alien, Vector3 position) : base(alien)
         {
             alien.StartNav();
             Debug.Log("Alien jumps!");
             alien.SetJumpSpeed();
+            alien.Destination = position;
         }
         public override State Update()
         {
-            alien.MoveToClosestReachableTarget();
-            if ((alien.isTargetVisible(out hit)) && (hit.distance <= alien.killDistance))
-            {
-                Operative operative = hit.collider.GetComponent<Operative>();
-                return new KillState(alien, operative);
-            }
             return this;
         }
     }
@@ -203,30 +208,41 @@ namespace Game.AlienStatesNamespace
     {
         GameObject spawner;
         bool isSpawner;
-        float distToSpawner;
+
+        GameObject doorObj;
+        GameObject approach;
+        Door door;
         public EscapeState(Alien alien) : base(alien)
         {
             alien.StartNav();
             Debug.Log("Alien escaping");
             alien.SetEscapeSpeed();
             isSpawner = alien.FindClosestReachableSpawner(out spawner);
+            if (isSpawner)
+            {
+                alien.Destination = spawner.transform.position;
+                alien.EscapeSpawner = spawner;
+            }
         }
         public override State Update()
         {
-            if (isSpawner)
+            if (!isSpawner)
             {
-                alien.MoveToClosestReachableSpawner();
-                distToSpawner = Vector3.Distance(alien.transform.position, spawner.transform.position);
-                if (distToSpawner < 0.6)
+                // no accessible spawner
+                if (alien.FindClosestReachableClosedDoor(out doorObj))
                 {
-                    return new HideState(alien);
+                    door = doorObj.GetComponent<Door>();
+                    approach = door.GetClosestApproach(alien.transform.position, alien.navMeshAgent);
+                    return new GoToBreakState(alien, doorObj, approach.transform.position);
                 }
-                return this;
             }
-            else
+            if (!alien.isPathComplete())
             {
-                return new IdleState(alien);
+                // spawner isn't accessible anymore
+                // try to find new one
+                return new EscapeState(alien);
             }
+            return this;
         }
     }
 

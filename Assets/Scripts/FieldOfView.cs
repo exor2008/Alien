@@ -45,6 +45,8 @@ public class FieldOfView : MonoBehaviour
                 if (!Physics.Raycast(transform.position, dirToTarget, distToTarget, obstacleMask))
                 {
                     visibleTargets.Add(target);
+                    Alien alien = target.gameObject.GetComponent<Alien>();
+                    alien.Target = gameObject;
                 }
             }
         }

@@ -66,7 +66,6 @@ namespace Game.OperativeStatesNamespace
         {
             if (operative.IsDestinationReached() && operative.isRotateNeeded)
             {
-                operative.isRotateNeeded = false;
                 return new RotateState(operative);
             }
             return this;
@@ -76,6 +75,7 @@ namespace Game.OperativeStatesNamespace
     public class RotateState : OperativeState
     {
         Quaternion lookRotation;
+        Vector3 dir;
         public RotateState(Operative _operative) : base(_operative)
         {
             operative.StopNav();
@@ -83,13 +83,14 @@ namespace Game.OperativeStatesNamespace
         }
         public override State Update()
         {
-            if (!operative.IsRotationFinished(lookRotation))
+            if (!operative.IsRotationFinished(out dir))
             {
-                Vector3 dir = (operative.TargetRotation - operative.transform.position).normalized;
                 lookRotation = Quaternion.LookRotation(dir);
                 operative.SmoothLookAt(lookRotation);
                 return this;
             }
+            operative.isRotateNeeded = false;
+            operative.TargetRotation = operative.transform.forward;
             return new IdleState(operative);
         }
     }

@@ -57,7 +57,7 @@ public class Operative : MonoBehaviour
     }
     public void OnTriggerStay(Collider other)
     {
-        if (toInteract == other.transform.parent.gameObject)
+        if (toInteract && toInteract == other.transform.parent?.gameObject)
         {
             SwitchState(new InteractState(this, toInteract));
         }
@@ -109,9 +109,10 @@ public class Operative : MonoBehaviour
         }
         return navAgent.remainingDistance < .5;
     }
-    public bool IsRotationFinished(Quaternion lookRotation)
+    public bool IsRotationFinished(out Vector3 dir)
     {
-        return Quaternion.Angle(transform.rotation, lookRotation) < 1e-6;
+        dir = (TargetRotation - transform.position).normalized;
+        return dir == Vector3.zero;
     }
     public void StopNav()
     {
