@@ -199,7 +199,7 @@ public class MinimapActiveScreen: ActiveScreen
         // cast ray to see what object we hit
         if (Physics.Raycast(viewRay, out hitObject))
         {
-            if ((door = hitObject.collider.GetComponent<Door>()) != null)
+            if ((door = hitObject.transform.parent.GetComponent<Door>()) != null)
             {
                 if (door.isPowered)
                 {
@@ -297,7 +297,7 @@ public class AutomaticDoorReaction: ClickReaction
     public AutomaticDoorReaction(RaycastHit hitInfo) : base(hitInfo) { }
     public override void React()
     {
-        Door door = hitInfo.collider.GetComponent<Door>();
+        Door door = hitInfo.transform.parent.GetComponent<Door>();
         door.Switch();
     }
 }
@@ -311,7 +311,7 @@ public class ManualDoorReaction : ClickReaction
     public ManualDoorReaction(RaycastHit hitInfo, Operative _operative) : base(hitInfo) 
     {
         operative = _operative;
-        door = hitInfo.collider.gameObject.GetComponent<Door>();
+        door = hitInfo.transform.parent.GetComponent<Door>();
     }
     public override void React()
     {
@@ -320,7 +320,7 @@ public class ManualDoorReaction : ClickReaction
         {
             operative.SwitchState(
                 new GoToInteractState(
-                    operative, hitInfo.collider.gameObject, approach.transform.position));
+                    operative, hitInfo.transform.parent.gameObject, approach.transform.position));
         }
     }
 }

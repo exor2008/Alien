@@ -51,7 +51,7 @@ namespace Game.AlienStatesNamespace
                 {
                     Door door = closestDoor.GetComponent<Door>();
                     GameObject approach = door.GetClosestApproach(
-                        alien.transform.position, alien.navMeshAgent);
+                        alien.transform.position, alien.navAgent);
                     if (approach)
                     {
                         return new GoToBreakState(alien, closestDoor, approach.transform.position);
@@ -76,7 +76,7 @@ namespace Game.AlienStatesNamespace
             if(Find.OneOfNReachableClosest(
                 5, 
                 alien.transform.position, 
-                alien.navMeshAgent, 
+                alien.navAgent, 
                 alien.GetRoamPoints(),
                 out roamPoint))
             {
@@ -93,7 +93,7 @@ namespace Game.AlienStatesNamespace
             if (alien.isExposed() && alien.reactionResolver.isGoingStalking())
             {
                 float stalkTime = alien.reactionResolver.stalkTime();
-                return new StalkState(alien, alien.GetTarget().transform, stalkTime);
+                return new StalkState(alien, alien.Target.transform, stalkTime);
             }
             return this;
         }
@@ -134,14 +134,14 @@ namespace Game.AlienStatesNamespace
             {
                 return new SpawnState(alien);
             }
-            if (alien.navMeshAgent.remainingDistance <= 1e-6)
+            if (alien.navAgent.remainingDistance <= 1e-6)
             {
                 alien.Destination = victim.transform.position;
             }
             if (alien.isExposed() && alien.reactionResolver.isGoingStalking())
             {
                 float stalkTime = alien.reactionResolver.stalkTime();
-                return new StalkState(alien, alien.GetTarget().transform, stalkTime);
+                return new StalkState(alien, alien.Target.transform, stalkTime);
             }
             if ((alien.isTargetVisible(out hit)) && (hit.distance <= alien.jumpDistance))
             {
@@ -232,7 +232,7 @@ namespace Game.AlienStatesNamespace
                 if (alien.FindClosestReachableClosedDoor(out doorObj))
                 {
                     door = doorObj.GetComponent<Door>();
-                    approach = door.GetClosestApproach(alien.transform.position, alien.navMeshAgent);
+                    approach = door.GetClosestApproach(alien.transform.position, alien.navAgent);
                     return new GoToBreakState(alien, doorObj, approach.transform.position);
                 }
             }
@@ -285,7 +285,7 @@ namespace Game.AlienStatesNamespace
                 {
                     return new StalkState(
                         alien,
-                        alien.GetTarget().transform,
+                        alien.Target.transform,
                         alien.reactionResolver.stalkTime());
                 }
             }

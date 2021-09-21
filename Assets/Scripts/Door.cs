@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Door : MonoBehaviour, Interactable, Breakable
+public class Door : ApproachableObject, Interactable, Breakable
 {
     public Material automateMaterial;
     public Material manualMaterial;
     public Material unpoweredMaterial;
-    public GameObject[] approaches;
+    
+    public GameObject door;
 
     public bool isAutotomate;
     public bool isPowered;
@@ -18,27 +19,18 @@ public class Door : MonoBehaviour, Interactable, Breakable
 
     void Start()
     {
-        meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer = door.GetComponent<MeshRenderer>();
     }
 
     void Update()
     {
         
     }
-
-    void MoveTriggers(Vector3 value)
-    {
-        foreach(GameObject approach in approaches)
-        {
-            approach.transform.position += value;
-        }
-    }
     public void Open()
     {
         if (!isOpened)
         {
-            transform.position += Vector3.up * 4;
-            MoveTriggers(-Vector3.up * 4);
+            door.transform.position += Vector3.up * 4;
             isOpened = true;
         }
     }
@@ -47,8 +39,7 @@ public class Door : MonoBehaviour, Interactable, Breakable
     {
         if (isOpened)
         {
-            transform.position -= Vector3.up * 4;
-            MoveTriggers(Vector3.up * 4);
+            door.transform.position -= Vector3.up * 4;
             isOpened = false;
         }
     }
@@ -108,15 +99,5 @@ public class Door : MonoBehaviour, Interactable, Breakable
         {
             SetManual();
         }
-    }
-
-    public GameObject GetClosestApproach(Vector3 position, NavMeshAgent navAgent)
-    {
-        GameObject closest;
-        if (Find.ClosestReachableObject(position, navAgent, approaches, out closest))
-        {
-            return closest;
-        }
-        return null;
     }
 }

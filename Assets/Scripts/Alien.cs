@@ -5,13 +5,11 @@ using UnityEngine;
 using UnityEngine.AI;
 using Game.AlienStatesNamespace;
 
-public class Alien : MonoBehaviour
+public class Alien : Unit
 {
-    //public GameObject[] operativesObj;
     public OperativesControl operativesControl;
     public DoorControl doorControl;
     public GameObject[] spawners;
-    public NavMeshAgent navMeshAgent;
     public RoamPointsControl roamPointsControl;
     public float runSpeed;
     public float jumpSpeed;
@@ -22,16 +20,6 @@ public class Alien : MonoBehaviour
     public float angryLevel;
     public float chillCooldown;
 
-    public Vector3 Destination
-    {
-        get => destination;
-        set
-        {
-            destination = value;
-            destination.y = transform.position.y;
-            navMeshAgent.SetDestination(destination);
-        }
-    }
     public GameObject Target 
     { 
         get => _target; 
@@ -41,12 +29,9 @@ public class Alien : MonoBehaviour
 
     public GameObject EscapeSpawner { get; set; }
     public GameObject ToBreak { get; set; }
-
-    Vector3 destination;
     [HideInInspector]
     public ReactionResolver reactionResolver;
     SpawnerControll spawnerController;
-    StateManager stateManager;
 
     void Start()
     {
@@ -74,35 +59,17 @@ public class Alien : MonoBehaviour
             SwitchState(new KillState(this, Target.GetComponent<Operative>()));
         }
     }
-    public void MoveToClosestReachableTarget()
-    {
-        GameObject[] operativesObj = operativesControl.GetAliveOperativesObjects();
-        MoveToClosestReachableObject(operativesObj);
-    }
-
-    public void MoveToClosestReachableSpawner()
-    {
-        MoveToClosestReachableObject(spawners);
-    }
-    public void MoveToClosestReachableObject(GameObject[] objects)
-    {
-        BaseDistanceResolver dist = new ReachableDistanceResolver(transform.position, navMeshAgent);
-        if (Find.ClosestReachableObject(transform.position, navMeshAgent, objects, out _target))
-        {
-            navMeshAgent.SetDestination(Target.transform.position);
-        }
-    }
 
     public bool FindClosestReachableTarget(out GameObject closest)
     {
         return Find.ClosestReachableObject(
-            transform.position, navMeshAgent, operativesControl.operativesObjects, out closest);
+            transform.position, navAgent, operativesControl.operativesObjects, out closest);
     }
 
     public bool FindClosestReachableSpawner(out GameObject closest)
     {
         return Find.ClosestReachableObject(
-            transform.position, navMeshAgent, spawners, out closest);
+            transform.position, navAgent, spawners, out closest);
     }
 
     public bool FindClosestReachableClosedDoor(out GameObject closestDoor)
@@ -113,28 +80,23 @@ public class Alien : MonoBehaviour
 
         return Find.ClosestReachableObject(
             transform.position,
-            navMeshAgent,
+            navAgent,
             doorObjects,
             out closestDoor);
     }
 
     public void Spawn(Vector3 position)
     {
-        navMeshAgent.Warp(position);
+        navAgent.Warp(position);
         isSpawned = true;
         SwitchState(new SpawnState(this));
     }
 
     public void Hide()
     {
-        navMeshAgent.Warp(new Vector3(130, 0, -20));
+        navAgent.Warp(new Vector3(130, 0, -20));
         isSpawned = false;
         spawnerController?.UpdateTimeSpawn();
-    }
-
-    public void SwitchState(State state)
-    {
-        stateManager.SwitchState(state);
     }
 
     public bool isTargetVisible(out RaycastHit hit)
@@ -148,20 +110,20 @@ public class Alien : MonoBehaviour
 
     public void SetJumpSpeed()
     {
-        navMeshAgent.speed = jumpSpeed;
-        navMeshAgent.acceleration = 32;
+        navAgent.speed = jumpSpeed;
+        navAgent.acceleration = 32;
     }
 
     public void SetRunSpeed()
     {
-        navMeshAgent.speed = runSpeed;
-        navMeshAgent.acceleration = 8;
+        navAgent.speed = runSpeed;
+        navAgent.acceleration = 8;
     }
 
     public void SetEscapeSpeed()
     {
-        navMeshAgent.speed = escapeSpeed;
-        navMeshAgent.acceleration = 16;
+        navAgent.speed = escapeSpeed;
+        navAgent.acceleration = 16;
     }
 
     public void SetSpawnController(SpawnerControll _spawnerController)
@@ -179,21 +141,6 @@ public class Alien : MonoBehaviour
             if(exposed = visibleTargets.Contains(transform)) { break; }
         }
         return exposed;
-    }
-
-    public GameObject GetTarget()
-    {
-        return Target;
-    }
-
-    public void StopNav()
-    {
-        navMeshAgent.isStopped = true;
-    }
-
-    public void StartNav()
-    {
-        navMeshAgent.isStopped = false;
     }
 
     public void Angry(float value = .1f)
@@ -218,10 +165,5 @@ public class Alien : MonoBehaviour
     public GameObject[] GetRoamPoints()
     {
         return roamPointsControl.GetPointsObjects();
-    }
-
-    public bool isPathComplete()
-    {
-        return navMeshAgent.path.status == NavMeshPathStatus.PathComplete;
     }
 }
