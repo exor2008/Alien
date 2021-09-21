@@ -46,13 +46,14 @@ namespace Game.AlienStatesNamespace
             else
             {
                 GameObject closestDoor;
-                if (alien.FindClosestReachableClosedDoor(out closestDoor)
-                    && alien.reactionResolver.isGoingBrakeDoor())
+                if (alien.reactionResolver.isGoingBrakeDoor() 
+                    && alien.FindClosestReachableClosedDoor(out closestDoor)
+                    )
                 {
                     Door door = closestDoor.GetComponent<Door>();
-                    GameObject approach = door.GetClosestApproach(
-                        alien.transform.position, alien.navAgent);
-                    if (approach)
+                    GameObject approach;
+                    
+                    if (door.GetClosestApproach(alien.transform.position, alien.navAgent, out approach))
                     {
                         return new GoToBreakState(alien, closestDoor, approach.transform.position);
                     }
@@ -200,6 +201,7 @@ namespace Game.AlienStatesNamespace
         public override State Update()
         {
             operative.Die();
+            alien.Target = null;
             return new EscapeState(alien);
         }
     }
@@ -232,7 +234,7 @@ namespace Game.AlienStatesNamespace
                 if (alien.FindClosestReachableClosedDoor(out doorObj))
                 {
                     door = doorObj.GetComponent<Door>();
-                    approach = door.GetClosestApproach(alien.transform.position, alien.navAgent);
+                    door.GetClosestApproach(alien.transform.position, alien.navAgent, out approach);
                     return new GoToBreakState(alien, doorObj, approach.transform.position);
                 }
             }
@@ -254,6 +256,7 @@ namespace Game.AlienStatesNamespace
             alien.StartNav();
             Debug.Log("Alien hides");
             alien.Hide();
+            alien.EscapeSpawner = null;
             return new IdleState(alien);
         }
     }

@@ -6,13 +6,8 @@ using UnityEngine.AI;
 public class ApproachableObject : MonoBehaviour
 {
     public GameObject[] approaches;
-    public GameObject GetClosestApproach(Vector3 position, NavMeshAgent navAgent)
+    public bool GetClosestApproach(Vector3 position, NavMeshAgent navAgent, out GameObject closest)
     {
-        GameObject closest;
-        if (Find.ClosestReachableObject(position, navAgent, approaches, out closest))
-        {
-            return closest;
-        }
-        return null;
+        return Find.ClosestReachableObject(position, navAgent, approaches, out closest);
     }
 }

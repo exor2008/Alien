@@ -244,18 +244,17 @@ public class OperativeActiveScreen : ActiveScreen
     }
     public override ClickReaction GetReactionDown(Ray viewRay)
     {
-        Alien alien;
         Door door;
 
         // cast ray to see what object we hit
         if (Physics.Raycast(viewRay, out hitObject))
         {
-            if ((alien = hitObject.collider.GetComponent<Alien>()) != null)
+            if ((hitObject.collider.GetComponent<Alien>()) != null)
             {
                 // TODO: implement shooting
                 return new AlienFleeReaction(hitObject);
             }
-            else if ((door = hitObject.collider.GetComponent<Door>()) != null)
+            else if ((door = hitObject.collider.GetComponentInParent<Door>()) != null)
             {
                 if (door.isPowered)
                 {
@@ -297,7 +296,7 @@ public class AutomaticDoorReaction: ClickReaction
     public AutomaticDoorReaction(RaycastHit hitInfo) : base(hitInfo) { }
     public override void React()
     {
-        Door door = hitInfo.transform.parent.GetComponent<Door>();
+        Door door = hitInfo.collider.GetComponentInParent<Door>();
         door.Switch();
     }
 }
@@ -315,8 +314,7 @@ public class ManualDoorReaction : ClickReaction
     }
     public override void React()
     {
-        approach = door.GetClosestApproach(operative.transform.position, operative.navAgent);
-        if (approach)
+        if (door.GetClosestApproach(operative.transform.position, operative.navAgent, out approach))
         {
             operative.SwitchState(
                 new GoToInteractState(
@@ -369,7 +367,7 @@ public class AlienFleeReaction : ClickReaction
 
     public override void React()
     {
-        Alien alien = hitInfo.collider.gameObject.GetComponent<Alien>();
+        Alien alien = hitInfo.collider.GetComponent<Alien>();
         alien.Angry(.3f);
         alien.SwitchState(new EscapeState(alien));
     }

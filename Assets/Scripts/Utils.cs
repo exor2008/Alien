@@ -157,6 +157,7 @@ static class Find
         BaseDistanceResolver dist = new ReachableDistanceResolver(from, navMeshAgent);
         return _ClosestObject(out closest, objects, dist);
     }
+
     public static bool ClosestObject(Vector3 from, NavMeshAgent navMeshAgent, GameObject[] objects, out GameObject closest)
     {
         BaseDistanceResolver dist = new DistanceResolver(from, navMeshAgent);

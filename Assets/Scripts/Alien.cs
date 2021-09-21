@@ -63,7 +63,7 @@ public class Alien : Unit
     public bool FindClosestReachableTarget(out GameObject closest)
     {
         return Find.ClosestReachableObject(
-            transform.position, navAgent, operativesControl.operativesObjects, out closest);
+            transform.position, navAgent, operativesControl.GetAliveOperativesObjects(), out closest);
     }
 
     public bool FindClosestReachableSpawner(out GameObject closest)
@@ -76,13 +76,21 @@ public class Alien : Unit
     {
         List<Door> doors = doorControl.GetDoors().ToList();
         doors = doors.Where(x => !x.isOpened).ToList();
-        GameObject[] doorObjects = doors.Select(door => door.gameObject).ToArray();
 
-        return Find.ClosestReachableObject(
+        GameObject[] approaches = doors.SelectMany(door => door.approaches).ToArray();
+
+        GameObject closestApproach;
+        if(Find.ClosestReachableObject(
             transform.position,
             navAgent,
-            doorObjects,
-            out closestDoor);
+            approaches,
+            out closestApproach))
+        {
+            closestDoor = closestApproach.transform.parent.gameObject;
+            return true;
+        }
+        closestDoor = null;
+        return false;
     }
 
     public void Spawn(Vector3 position)
