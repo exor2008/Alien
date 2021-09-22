@@ -369,6 +369,7 @@ public class AlienFleeReaction : ClickReaction
     {
         Alien alien = hitInfo.collider.GetComponent<Alien>();
         alien.Angry(.3f);
+        alien.DropDeadBody();
         alien.SwitchState(new EscapeState(alien));
     }
 }

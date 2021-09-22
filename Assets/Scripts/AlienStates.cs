@@ -37,8 +37,7 @@ namespace Game.AlienStatesNamespace
         {
             // Hunt
             GameObject victim;
-            if (alien.FindClosestReachableTarget(out victim)
-                && alien.reactionResolver.isGoingHunting())
+            if (alien.reactionResolver.isGoingHunting())
             {
                 return new ChooseVictim(alien);
             }
@@ -109,11 +108,15 @@ namespace Game.AlienStatesNamespace
         }
         public override State Update()
         {
-            if (alien.FindClosestReachableTarget(out victim))
+            if (alien.reactionResolver.isHuntDeadBody() && alien.FindClosestReachableDeadBody(out victim))
+            {
+                return new GoToDeadBodyState(alien, victim);
+            }
+            else if(alien.FindClosestReachableTarget(out victim))
             {
                 return new HuntState(alien, victim);
             }
-            return new IdleState(alien);
+            return new SpawnState(alien);
         }
     }
     public class HuntState : AlienState
@@ -257,6 +260,7 @@ namespace Game.AlienStatesNamespace
             Debug.Log("Alien hides");
             alien.Hide();
             alien.EscapeSpawner = null;
+            alien.DestroyCapturedDeadBody();
             return new IdleState(alien);
         }
     }
@@ -329,11 +333,47 @@ namespace Game.AlienStatesNamespace
         }
     }
 
+    public class GoToDeadBodyState : AlienState
+    {
+        GameObject deadBody;
+        public GoToDeadBodyState(Alien alien, GameObject _deadBody)
+            : base(alien)
+        {
+            alien.StartNav();
+            deadBody = _deadBody;
+            Debug.Log("Alien going to the dead body");
+            alien.Target = deadBody;
+            alien.Destination = deadBody.transform.position;
+        }
+        public override State Update()
+        {
+            return this;
+        }
+    }
+
+    public class CarryDeadBodyState : AlienState
+    {
+        GameObject deadBody;
+        public CarryDeadBodyState(Alien alien, GameObject _deadBody)
+            : base(alien)
+        {
+            deadBody = _deadBody;
+            deadBody.transform.SetParent(alien.transform);
+            alien.Target = null;
+            Debug.Log("Alien escaping with the dead body");
+        }
+        public override State Update()
+        {
+            return new EscapeState(alien);
+        }
+    }
+
     public class ReactionResolver
     {
-        const float STALK_CHANSE = .7f;
-        const float HUNT_CHANSE = 0.2f;
-        const float BRAKE_CHANSE = 0.5f;
+        const float STALK_CHANSE = .5f;
+        const float HUNT_CHANSE = 0.4f;
+        const float BREAK_CHANSE = 0.3f;
+        const float HUNT_DEADBODY_CHANSE = 0.5f;
         Alien alien;
         public ReactionResolver(Alien _alien)
         {
@@ -350,7 +390,11 @@ namespace Game.AlienStatesNamespace
         }
         public bool isGoingBrakeDoor()
         {
-            return Utils.Rand() - alien.angryLevel < BRAKE_CHANSE;
+            return Utils.Rand() - alien.angryLevel < BREAK_CHANSE;
+        }
+        public bool isHuntDeadBody()
+        {
+            return Utils.Rand() < HUNT_DEADBODY_CHANSE;
         }
         public float prepareJumpLenght()
         {

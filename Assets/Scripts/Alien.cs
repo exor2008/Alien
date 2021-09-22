@@ -7,6 +7,7 @@ using Game.AlienStatesNamespace;
 
 public class Alien : Unit
 {
+    public DeadBodiesControl deadBodiesControl;
     public OperativesControl operativesControl;
     public DoorControl doorControl;
     public GameObject[] spawners;
@@ -56,7 +57,14 @@ public class Alien : Unit
         }
         else if (Target != null && Target == other.gameObject)
         {
-            SwitchState(new KillState(this, Target.GetComponent<Operative>()));
+            if (other.GetComponentInParent<Operative>())
+            {
+                SwitchState(new KillState(this, Target.GetComponent<Operative>()));
+            }
+            else
+            {
+                SwitchState(new CarryDeadBodyState(this, Target));
+            }
         }
     }
 
@@ -64,6 +72,12 @@ public class Alien : Unit
     {
         return Find.ClosestReachableObject(
             transform.position, navAgent, operativesControl.GetAliveOperativesObjects(), out closest);
+    }
+
+    public bool FindClosestReachableDeadBody(out GameObject closest)
+    {
+        return Find.ClosestReachableObject(
+            transform.position, navAgent, deadBodiesControl.GetDeadBodies(), out closest);
     }
 
     public bool FindClosestReachableSpawner(out GameObject closest)
@@ -173,5 +187,21 @@ public class Alien : Unit
     public GameObject[] GetRoamPoints()
     {
         return roamPointsControl.GetPointsObjects();
+    }
+    public void DestroyCapturedDeadBody()
+    {
+        DeadBody deadBody;
+        if(deadBody = GetComponentInChildren<DeadBody>())
+        {
+            Destroy(deadBody.gameObject);
+        }
+    }
+    public void DropDeadBody()
+    {
+        DeadBody deadBody;
+        if (deadBody = GetComponentInChildren<DeadBody>())
+        {
+            deadBodiesControl.Aquire(deadBody.gameObject);
+        }
     }
 }

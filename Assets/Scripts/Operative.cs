@@ -6,8 +6,7 @@ using Game.OperativeStatesNamespace;
 
 public class Operative : Unit
 {
-    public GameObject deadBodiesHolder;
-    public GameObject deadBodyPrefab;
+    public DeadBodiesControl deadBodiesControl;
     public OperativesControl operativeControll;
     public ScreenControll screenControll;
     public GameObject screens;
@@ -53,17 +52,12 @@ public class Operative : Unit
     }    
     public void Die()
     {
-        SpawnDeadBody();
+        deadBodiesControl.SpawnDeadBody(transform);
         navAgent.Warp(new Vector3(130, 2, -20));
         StopNav();
         screenControll.ShutDown(serialNumber);
         fieldOfView.Die();
         isAlive = false;
-    }
-    public void SpawnDeadBody()
-    {
-        GameObject deadBody = Instantiate(deadBodyPrefab, transform.position, transform.rotation, deadBodiesHolder.transform);
-        operativeControll.AddDeadBody(deadBody);
     }
     public string Name()
     {
