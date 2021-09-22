@@ -46,15 +46,15 @@ public class Alien : Unit
     }
     public void OnTriggerStay(Collider other)
     {
-        if (ToBreak == other.transform.parent.gameObject)
+        if (ToBreak != null && ToBreak == other.transform.parent?.gameObject)
         {
             SwitchState(new BreakState(this, ToBreak));
         }
-        else if (EscapeSpawner == other.gameObject)
+        else if (EscapeSpawner != null && EscapeSpawner == other.gameObject)
         {
             SwitchState(new HideState(this));
         }
-        else if (Target == other.gameObject)
+        else if (Target != null && Target == other.gameObject)
         {
             SwitchState(new KillState(this, Target.GetComponent<Operative>()));
         }

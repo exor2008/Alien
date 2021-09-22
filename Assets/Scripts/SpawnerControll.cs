@@ -11,14 +11,12 @@ public class SpawnerControll : MonoBehaviour
     public float spawnDelay;
     
     public float timeSinceSpawn;
-    Operative[] operatives;
     Alien alien;
 
     void Start()
     {
         alien = alienObj.GetComponent<Alien>();
         alien.SetSpawnController(this);
-        operatives = operativesControl.GetOperatives();
     }
 
     void Update()

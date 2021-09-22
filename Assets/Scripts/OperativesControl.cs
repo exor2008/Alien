@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class OperativesControl : MonoBehaviour
 {
+    public List<GameObject> deadBodies;
     public GameObject[] operativesObjects;
     protected Operative[] operatives;
     public int currentOperativeIdx;
 
     void Start()
     {
+        deadBodies = new List<GameObject>();
         currentOperativeIdx = 0;
         operatives = Utils.GetComponentArray<Operative>(operativesObjects);
     }
@@ -78,5 +80,9 @@ public class OperativesControl : MonoBehaviour
     public Operative[] GetOperatives()
     {
         return operatives;
+    }
+    public void AddDeadBody(GameObject deadBody)
+    {
+        deadBodies.Add(deadBody);
     }
 }

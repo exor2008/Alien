@@ -6,7 +6,10 @@ using Game.OperativeStatesNamespace;
 
 public class Operative : Unit
 {
-    
+    public GameObject deadBodiesHolder;
+    public GameObject deadBodyPrefab;
+    public OperativesControl operativeControll;
+    public ScreenControll screenControll;
     public GameObject screens;
     public bool isCurrent;
     public int serialNumber;
@@ -15,13 +18,12 @@ public class Operative : Unit
 
     [HideInInspector]
     public bool isRotateNeeded { get; set; }
-    protected ScreenControll screenControll;
+    
     protected GameObject toInteract;
 
     void Start()
     {
         stateManager = new StateManager(new IdleState(this));
-        screenControll = screens.GetComponent<ScreenControll>();
         isAlive = true;
     }
     void Update()
@@ -51,11 +53,17 @@ public class Operative : Unit
     }    
     public void Die()
     {
+        SpawnDeadBody();
         navAgent.Warp(new Vector3(130, 2, -20));
         StopNav();
         screenControll.ShutDown(serialNumber);
         fieldOfView.Die();
         isAlive = false;
+    }
+    public void SpawnDeadBody()
+    {
+        GameObject deadBody = Instantiate(deadBodyPrefab, transform.position, transform.rotation, deadBodiesHolder.transform);
+        operativeControll.AddDeadBody(deadBody);
     }
     public string Name()
     {

@@ -46,7 +46,7 @@ public class FieldOfView : MonoBehaviour
                 {
                     visibleTargets.Add(target);
                     Alien alien = target.gameObject.GetComponent<Alien>();
-                    alien.Target = gameObject;
+                    alien.Target = alien.Target == null ? gameObject : alien.Target;
                 }
             }
         }
