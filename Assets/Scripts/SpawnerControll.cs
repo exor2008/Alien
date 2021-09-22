@@ -47,6 +47,7 @@ public class SpawnerControll : MonoBehaviour
         const int N_CLOSEST_SPAWNERS = 3;
         GameObject spawner = null;
         
+        // try to find closest reachable spawner
         foreach (Operative operative in operativesControl.GetAliveShuffledOperatives())
         {
             if(Find.OneOfNReachableClosest(
@@ -58,10 +59,21 @@ public class SpawnerControll : MonoBehaviour
             {
                 return spawner;
             }
-
-
         }
-        //TODO : что делать, если оперативники недоступны с любого спауна?
+        // find any closest spawner
+        foreach (Operative operative in operativesControl.GetAliveShuffledOperatives())
+        {
+            if (Find.OneOfNClosest(
+                N_CLOSEST_SPAWNERS,
+                operative.transform.position,
+                operative.navAgent,
+                spawners,
+                out spawner))
+            {
+                return spawner;
+            }
+        }
+
         return spawners[0];
     }
 }
