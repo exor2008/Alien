@@ -27,7 +27,10 @@ public class Operative : Unit
     }
     void Update()
     {
-        stateManager.Updtae();
+        if (isAlive)
+        {
+            stateManager.Updtae();
+        }
     }
     public void OnTriggerStay(Collider other)
     {

@@ -36,16 +36,15 @@ namespace Game.AlienStatesNamespace
         public override State Update()
         {
             // Hunt
-            GameObject victim;
-            if (alien.reactionResolver.isGoingHunting())
+            if (alien.reactionResolver.IsGoingHunting())
             {
                 return new ChooseVictim(alien);
             }
-            // Brake door
+            // Beak door
             else
             {
                 GameObject closestDoor;
-                if (alien.reactionResolver.isGoingBrakeDoor() 
+                if (alien.reactionResolver.IsGoingBrakeDoor() 
                     && alien.FindClosestReachableClosedDoor(out closestDoor)
                     )
                 {
@@ -58,7 +57,7 @@ namespace Game.AlienStatesNamespace
                     }
                 }
             }
-            return new RoamState(alien);
+            return new RoamState(alien, alien.reactionResolver.RoamTime());
         }
     }
 
@@ -67,10 +66,11 @@ namespace Game.AlienStatesNamespace
         float startTime;
         float roamTime;
         GameObject roamPoint;
-        public RoamState (Alien alien) : base(alien) 
+        public RoamState (Alien alien, float _roamTime) : base(alien) 
         {
             startTime = Time.time;
-            roamTime = alien.reactionResolver.roamTime();
+            roamTime = _roamTime;
+            //roamTime = alien.reactionResolver.roamTime();
             alien.SetRunSpeed();
             alien.StartNav();
             if(Find.OneOfNReachableClosest(
@@ -90,10 +90,14 @@ namespace Game.AlienStatesNamespace
             {
                 return new SpawnState(alien);
             }
-            if (alien.isExposed() && alien.reactionResolver.isGoingStalking())
+            if (alien.isExposed() && alien.reactionResolver.IsGoingStalking())
             {
-                float stalkTime = alien.reactionResolver.stalkTime();
+                float stalkTime = alien.reactionResolver.StalkTime();
                 return new StalkState(alien, alien.Target.transform, stalkTime);
+            }
+            if(alien.navAgent.remainingDistance < 1e-6)
+            {
+                return new RoamState(alien, Time.time - startTime);
             }
             return this;
         }
@@ -108,7 +112,7 @@ namespace Game.AlienStatesNamespace
         }
         public override State Update()
         {
-            if (alien.reactionResolver.isHuntDeadBody() && alien.FindClosestReachableDeadBody(out victim))
+            if (alien.reactionResolver.IsHuntDeadBody() && alien.FindClosestReachableDeadBody(out victim))
             {
                 return new GoToDeadBodyState(alien, victim);
             }
@@ -142,9 +146,9 @@ namespace Game.AlienStatesNamespace
             {
                 alien.Destination = victim.transform.position;
             }
-            if (alien.isExposed() && alien.reactionResolver.isGoingStalking())
+            if (alien.isExposed() && alien.reactionResolver.IsGoingStalking())
             {
-                float stalkTime = alien.reactionResolver.stalkTime();
+                float stalkTime = alien.reactionResolver.StalkTime();
                 return new StalkState(alien, alien.Target.transform, stalkTime);
             }
             if ((alien.isTargetVisible(out hit)) && (hit.distance <= alien.jumpDistance))
@@ -164,7 +168,7 @@ namespace Game.AlienStatesNamespace
             alien.StopNav();
             Debug.Log("Alien prepares attack");
             start = Time.time;
-            lenght = alien.reactionResolver.prepareJumpLenght();
+            lenght = alien.reactionResolver.PrepareJumpLenght();
         }
         public override State Update()
         {
@@ -284,7 +288,7 @@ namespace Game.AlienStatesNamespace
             alien.transform.LookAt(target);
             if (Time.time - start > lenght)
             {
-                if (alien.reactionResolver.isGoingHunting())
+                if (alien.reactionResolver.IsGoingHunting())
                 {
                     return new ChooseVictim(alien);
                 }
@@ -293,7 +297,7 @@ namespace Game.AlienStatesNamespace
                     return new StalkState(
                         alien,
                         alien.Target.transform,
-                        alien.reactionResolver.stalkTime());
+                        alien.reactionResolver.StalkTime());
                 }
             }
             return this;
@@ -380,31 +384,31 @@ namespace Game.AlienStatesNamespace
             alien = _alien;
         }
 
-        public bool isGoingStalking()
+        public bool IsGoingStalking()
         {
             return Utils.Rand() + alien.angryLevel < STALK_CHANSE;
         }
-        public bool isGoingHunting()
+        public bool IsGoingHunting()
         {
             return Utils.Rand() - alien.angryLevel < HUNT_CHANSE;
         }
-        public bool isGoingBrakeDoor()
+        public bool IsGoingBrakeDoor()
         {
             return Utils.Rand() - alien.angryLevel < BREAK_CHANSE;
         }
-        public bool isHuntDeadBody()
+        public bool IsHuntDeadBody()
         {
             return Utils.Rand() < HUNT_DEADBODY_CHANSE;
         }
-        public float prepareJumpLenght()
+        public float PrepareJumpLenght()
         {
             return Random.Range(.5f, 4f);
         }
-        public float stalkTime()
+        public float StalkTime()
         {
             return Random.Range(3, 10);
         }
-        public float roamTime()
+        public float RoamTime()
         {
             return Random.Range(3, 10);
         }
